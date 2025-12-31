@@ -8,7 +8,13 @@ fetch_enr(end_year, tidy = TRUE, use_cache = TRUE)
 }
 \arguments{
 \item{end_year}{A school year. Year is the end of the academic year - e.g., 2023-24
-school year is year '2024'. Valid values are 2018-2026.}
+school year is year '2024'. Valid values are 2014-2026.
+
+\strong{Note on data availability:}
+\itemize{
+\item Years 2019-2026: Full State, LEA (district), and School-level data
+\item Years 2014-2018: State-level totals only (from historical time series)
+}}
 
 \item{tidy}{If TRUE (default), returns data in long (tidy) format with subgroup
 column. If FALSE, returns wide format.}
@@ -20,6 +26,7 @@ Set to FALSE to force re-download from USBE.}
 Data frame with enrollment data. Wide format includes columns for
 district_id, campus_id, names, and enrollment counts by demographic/grade.
 Tidy format pivots these counts into subgroup and grade_level columns.
+For years 2014-2018, only state-level totals are returned.
 }
 \description{
 Downloads and processes enrollment data from the Utah State Board of
@@ -39,5 +46,8 @@ enr_fresh <- fetch_enr(2024, use_cache = FALSE)
 # Filter to specific district
 salt_lake <- enr_2024 \%>\%
   dplyr::filter(grepl("Salt Lake", district_name, ignore.case = TRUE))
+
+# Historical state-level data (2014-2018)
+state_2015 <- fetch_enr(2015)  # State totals only
 }
 }

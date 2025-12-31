@@ -13,7 +13,12 @@
 #' Education (USBE) Fall Enrollment reports.
 #'
 #' @param end_year A school year. Year is the end of the academic year - e.g., 2023-24
-#'   school year is year '2024'. Valid values are 2018-2026.
+#'   school year is year '2024'. Valid values are 2014-2026.
+#'
+#'   **Note on data availability:**
+#'   - Years 2019-2026: Full State, LEA (district), and School-level data
+#'   - Years 2014-2018: State-level totals only (from historical time series)
+#'
 #' @param tidy If TRUE (default), returns data in long (tidy) format with subgroup
 #'   column. If FALSE, returns wide format.
 #' @param use_cache If TRUE (default), uses locally cached data when available.
@@ -21,6 +26,7 @@
 #' @return Data frame with enrollment data. Wide format includes columns for
 #'   district_id, campus_id, names, and enrollment counts by demographic/grade.
 #'   Tidy format pivots these counts into subgroup and grade_level columns.
+#'   For years 2014-2018, only state-level totals are returned.
 #' @export
 #' @examples
 #' \dontrun{
@@ -36,6 +42,9 @@
 #' # Filter to specific district
 #' salt_lake <- enr_2024 %>%
 #'   dplyr::filter(grepl("Salt Lake", district_name, ignore.case = TRUE))
+#'
+#' # Historical state-level data (2014-2018)
+#' state_2015 <- fetch_enr(2015)  # State totals only
 #' }
 fetch_enr <- function(end_year, tidy = TRUE, use_cache = TRUE) {
 

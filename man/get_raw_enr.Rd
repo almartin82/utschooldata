@@ -10,11 +10,13 @@ get_raw_enr(end_year)
 \item{end_year}{School year end (e.g., 2024 = 2023-24 school year)}
 }
 \value{
-List with state, district, and school data frames
+Data frame with combined enrollment data (state, district, and school
+levels for 2019+; state level only for 2014-2018)
 }
 \description{
 Downloads enrollment data from USBE's Data and Statistics reports.
-Data is provided as Excel files with multiple sheets.
-Returns combined data from State, LEA (district), and School sheets.
+For years 2019 and later, data is provided as Excel files with multiple sheets
+(State, By LEA, By School). For years 2014-2018, only state-level totals
+are available from the State Total Time Series sheet.
 }
 \keyword{internal}

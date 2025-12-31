@@ -6,7 +6,7 @@
 \alias{utschooldata}
 \title{utschooldata: Fetch and Process Utah School Data}
 \description{
-Downloads and processes school enrollment data from the Utah State Board of Education (USBE). Provides functions for fetching enrollment data from USBE data reports and transforming it into tidy format for analysis. Supports data from 2018 to present with grade-level and demographic breakdowns.
+Downloads and processes school enrollment data from the Utah State Board of Education (USBE). Provides functions for fetching enrollment data from USBE data reports and transforming it into tidy format for analysis. Supports data from 2014 to present. Full State, LEA (district), and School-level data is available from 2019 onwards, with grade-level and demographic breakdowns. Historical state-level totals are available for 2014-2018.
 
 The utschooldata package provides functions for downloading, processing,
 and analyzing school enrollment data from the Utah State Board of Education

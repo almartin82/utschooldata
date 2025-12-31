@@ -6,25 +6,35 @@
 # the Utah State Board of Education (USBE).
 #
 # Data Sources:
-# - Fall Enrollment by Grade Level and Demographics (2018-present)
+# - Fall Enrollment by Grade Level and Demographics (2019-present)
 #   URL pattern: https://www.schools.utah.gov/datastatistics/_datastatisticsfiles_/
 #                _reports_/_enrollmentmembership_/{YEAR}FallEnrollmentGradeLevelDemographics.xlsx
 #
+# - State Total Time Series (2014-2018, state-level totals only)
+#   URL: https://www.schools.utah.gov/superintendentannualreport/_reports/
+#        Fall%20Enrollment%20by%20Grade%20Level%20and%20Demographics.xlsx
+#   Contains "State Total Time Series" sheet with historical state-level data
+#
 # Format Eras:
-# - Era 1 (2018-present): Excel files with consistent column structure
+# - Era 1 (2019-present): Excel files with consistent column structure
 #   Contains school-level enrollment with grade and demographic breakdowns
 #   Excel workbook has multiple sheets: State, By County, By LEA, By School
+#
+# - Era 0 (2014-2018): State-level totals only from Time Series sheet
+#   Available from superintendent annual report historical file
 #
 # ==============================================================================
 
 #' Download raw enrollment data from USBE
 #'
 #' Downloads enrollment data from USBE's Data and Statistics reports.
-#' Data is provided as Excel files with multiple sheets.
-#' Returns combined data from State, LEA (district), and School sheets.
+#' For years 2019 and later, data is provided as Excel files with multiple sheets
+#' (State, By LEA, By School). For years 2014-2018, only state-level totals
+#' are available from the State Total Time Series sheet.
 #'
 #' @param end_year School year end (e.g., 2024 = 2023-24 school year)
-#' @return List with state, district, and school data frames
+#' @return Data frame with combined enrollment data (state, district, and school
+#'   levels for 2019+; state level only for 2014-2018)
 #' @keywords internal
 get_raw_enr <- function(end_year) {
 
@@ -38,8 +48,17 @@ get_raw_enr <- function(end_year) {
 
   message(paste("Downloading USBE enrollment data for", end_year, "..."))
 
-  # Download the enrollment file and read all sheets
-  raw_data <- download_usbe_enrollment(end_year)
+  # Check if this is a historical year (state-level only)
+  if (end_year %in% get_state_only_years()) {
+    message(paste0(
+      "  Note: Year ", end_year, " only has state-level data available.\n",
+      "  For school-level data, use years 2019 and later."
+    ))
+    raw_data <- download_usbe_time_series(end_year)
+  } else {
+    # Download the enrollment file and read all sheets
+    raw_data <- download_usbe_enrollment(end_year)
+  }
 
   raw_data
 }
@@ -243,4 +262,93 @@ build_usbe_url <- function(end_year) {
   base_url <- "https://www.schools.utah.gov/datastatistics/_datastatisticsfiles_/_reports_/_enrollmentmembership_"
   filename <- paste0(end_year, "FallEnrollmentGradeLevelDemographics.xlsx")
   paste0(base_url, "/", filename)
+}
+
+
+#' Download USBE historical enrollment data from Time Series
+#'
+#' Downloads state-level enrollment data for years 2014-2018 from the
+#' "State Total Time Series" sheet in the superintendent annual report file.
+#' This sheet contains historical state totals that are not available in
+#' individual year files.
+#'
+#' @param end_year School year end (2014-2018)
+#' @return Data frame with state-level enrollment data
+#' @keywords internal
+download_usbe_time_series <- function(end_year) {
+
+  # The superintendent annual report file contains the Time Series data
+  url <- "https://www.schools.utah.gov/superintendentannualreport/_reports/Fall%20Enrollment%20by%20Grade%20Level%20and%20Demographics.xlsx"
+  message(paste0("  Downloading from: ", url))
+
+  # Create temp file for download
+  tname <- tempfile(
+    pattern = "usbe_time_series_",
+    tmpdir = tempdir(),
+    fileext = ".xlsx"
+  )
+
+  # Download file
+  tryCatch({
+    response <- httr::GET(
+      url,
+      httr::write_disk(tname, overwrite = TRUE),
+      httr::timeout(120),
+      httr::user_agent("utschooldata R package")
+    )
+
+    if (httr::http_error(response)) {
+      status_code <- httr::status_code(response)
+      stop(paste("HTTP error:", status_code))
+    }
+
+    # Verify file was downloaded
+    file_info <- file.info(tname)
+    if (is.na(file_info$size) || file_info$size < 1000) {
+      stop("Downloaded file is too small - may be an error page")
+    }
+
+  }, error = function(e) {
+    stop(paste("Failed to download historical enrollment data",
+               "\nError:", e$message,
+               "\nURL:", url))
+  })
+
+  # Read the State Total Time Series sheet
+  message("  Reading State Total Time Series data...")
+  result <- tryCatch({
+    sheets <- readxl::excel_sheets(tname)
+    if (!"State Total Time Series" %in% sheets) {
+      stop("Could not find 'State Total Time Series' sheet in file")
+    }
+
+    df <- readxl::read_excel(tname, sheet = "State Total Time Series")
+
+    # Standardize column names
+    df <- standardize_columns(df)
+
+    # Filter to requested year using School_Year or school_year column
+    year_col <- grep("school_year|School_Year", names(df), value = TRUE, ignore.case = TRUE)
+    if (length(year_col) == 0) {
+      stop("Could not find school year column in Time Series data")
+    }
+
+    df <- df[df[[year_col[1]]] == end_year, ]
+
+    if (nrow(df) == 0) {
+      stop(paste0("No data found for year ", end_year, " in Time Series sheet"))
+    }
+
+    # Add level column for consistency with regular downloads
+    df$level <- "State"
+
+    df
+  }, error = function(e) {
+    stop(paste("Could not read Time Series sheet:", e$message))
+  })
+
+  # Clean up temp file
+  unlink(tname)
+
+  result
 }

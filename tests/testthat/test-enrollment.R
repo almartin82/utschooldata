@@ -23,12 +23,31 @@ test_that("get_available_years returns valid range", {
 
   expect_true(is.numeric(years))
   expect_true(length(years) > 0)
-  expect_true(min(years) >= 2018)
+  expect_true(min(years) >= 2014)  # Historical data from 2014
+
   expect_true(max(years) <= 2030)  # Reasonable upper bound
 })
 
+test_that("get_full_data_years returns 2019+", {
+  full_years <- get_full_data_years()
+
+  expect_true(is.numeric(full_years))
+  expect_true(min(full_years) == 2019)
+  expect_true(all(full_years >= 2019))
+})
+
+test_that("get_state_only_years returns 2014-2018", {
+  state_years <- get_state_only_years()
+
+  expect_true(is.numeric(state_years))
+  expect_equal(min(state_years), 2014)
+  expect_equal(max(state_years), 2018)
+  expect_equal(length(state_years), 5)
+})
+
 test_that("fetch_enr validates year parameter", {
-  expect_error(fetch_enr(2010), "end_year must be between")
+  expect_error(fetch_enr(2010), "end_year must be between")  # Before data availability
+  expect_error(fetch_enr(2013), "end_year must be between")  # Just before 2014
   expect_error(fetch_enr(2050), "end_year must be between")
 })
 
@@ -151,4 +170,53 @@ test_that("state totals are reasonable", {
   # Allow reasonable range (500k-1M)
   expect_true(state_total > 500000)
   expect_true(state_total < 1000000)
+})
+
+
+# Historical data tests (2014-2018)
+test_that("fetch_enr downloads historical state data (2014-2018)", {
+  skip_on_cran()
+  skip_if_offline()
+
+  # Use 2015 as a test case for historical data
+  result <- fetch_enr(2015, tidy = TRUE, use_cache = FALSE)
+
+  # Check structure
+  expect_true(is.data.frame(result))
+  expect_true("n_students" %in% names(result))
+  expect_true("is_state" %in% names(result))
+
+  # Historical data should only have state-level data
+  expect_true(all(result$is_state))
+  expect_false(any(result$is_district, na.rm = TRUE))
+  expect_false(any(result$is_campus, na.rm = TRUE))
+
+  # Get state total enrollment for 2015
+  state_total <- result %>%
+    dplyr::filter(is_state, subgroup == "total_enrollment", grade_level == "TOTAL") %>%
+    dplyr::pull(n_students)
+
+  # Utah had approximately 620,000 K-12 students in 2015
+  expect_true(state_total > 500000)
+  expect_true(state_total < 800000)
+})
+
+test_that("historical and current data can be combined", {
+  skip_on_cran()
+  skip_if_offline()
+
+  # Get a range spanning historical and current data
+  result <- fetch_enr_multi(c(2015, 2024), tidy = TRUE, use_cache = TRUE)
+
+  # Check we have both years
+  expect_true(2015 %in% result$end_year)
+  expect_true(2024 %in% result$end_year)
+
+  # Check state totals exist for both years
+  state_totals <- result %>%
+    dplyr::filter(is_state, subgroup == "total_enrollment", grade_level == "TOTAL") %>%
+    dplyr::select(end_year, n_students)
+
+  expect_equal(nrow(state_totals), 2)
+  expect_true(all(state_totals$n_students > 500000))
 })

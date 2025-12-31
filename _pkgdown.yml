@@ -43,6 +43,9 @@ home:
   description: >
     An R package for fetching, processing, and analyzing school enrollment
     data from Utah's State Board of Education (USBE).
+  links:
+    - text: "Part of the 50 State Schooldata Family"
+      href: https://github.com/almartin82/njschooldata
 
 authors:
   Al Martin:

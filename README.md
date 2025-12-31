@@ -155,14 +155,13 @@ Cache location: `rappdirs::user_cache_dir("utschooldata")`
 - `cache_status()` - Show cached data status
 - `clear_cache(end_year, type)` - Clear cached data
 
-## Related Packages
+## Part of the 50 State Schooldata Family
 
-- [txschooldata](https://github.com/almartin82/txschooldata) - Texas school enrollment data
-- [caschooldata](https://github.com/almartin82/caschooldata) - California school enrollment data
-- [ilschooldata](https://github.com/almartin82/ilschooldata) - Illinois school enrollment data
-- [nyschooldata](https://github.com/almartin82/nyschooldata) - New York school enrollment data
-- [ohschooldata](https://github.com/almartin82/ohschooldata) - Ohio school enrollment data
-- [paschooldata](https://github.com/almartin82/paschooldata) - Pennsylvania school enrollment data
+This package is part of a family of R packages providing school enrollment data for all 50 US states. Each package fetches data directly from the state's Department of Education.
+
+**See also:** [njschooldata](https://github.com/almartin82/njschooldata) - The original state schooldata package for New Jersey.
+
+**All packages:** [github.com/almartin82](https://github.com/almartin82?tab=repositories&q=schooldata)
 
 ## License
 MIT
