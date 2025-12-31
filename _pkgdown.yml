@@ -1,0 +1,49 @@
+url: https://almartin82.github.io/utschooldata/
+
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    left:  [intro, reference, articles]
+    right: [search, github]
+  components:
+    github:
+      icon: fa-github
+      href: https://github.com/almartin82/utschooldata
+
+reference:
+- title: "Fetching Data"
+  desc: "Functions for downloading enrollment data from USBE"
+  contents:
+  - fetch_enr
+  - fetch_enr_multi
+  - get_available_years
+
+- title: "Data Transformation"
+  desc: "Functions for transforming and tidying enrollment data"
+  contents:
+  - tidy_enr
+  - id_enr_aggs
+  - enr_grade_aggs
+
+- title: "Caching"
+  desc: "Functions for managing cached data"
+  contents:
+  - cache_status
+  - clear_cache
+
+- title: "Package"
+  desc: "Package documentation"
+  contents:
+  - utschooldata-package
+
+home:
+  title: "Utah School Data"
+  description: >
+    An R package for fetching, processing, and analyzing school enrollment
+    data from Utah's State Board of Education (USBE).
+
+authors:
+  Al Martin:
+    href: https://github.com/almartin82

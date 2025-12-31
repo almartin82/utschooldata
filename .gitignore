@@ -1,0 +1,25 @@
+# R package build files
+*.Rproj.user
+*.Rhistory
+*.RData
+*.Ruserdata
+*.tar.gz
+*.Rcheck/
+
+# IDE files
+.Rproj.user/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+docs/
+inst/doc/
+
+# Local development
+*.rds
+.httr-oauth
