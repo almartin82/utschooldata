@@ -5,7 +5,6 @@
 *.Ruserdata
 *.tar.gz
 *.Rcheck/
-..Rcheck/
 
 # IDE files
 .Rproj.user/
