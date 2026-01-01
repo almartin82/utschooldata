@@ -1,10 +1,7 @@
 # utschooldata
 
-An R package for fetching, processing, and analyzing school enrollment
-data from Utah’s State Board of Education (USBE). It provides a
-programmatic interface to Utah public school data, enabling researchers,
-analysts, and education policy professionals to easily access Utah
-public school enrollment data.
+Fetch and analyze Utah school enrollment data from
+[USBE](https://schools.utah.gov/datastatistics/reports) in R or Python.
 
 ## Installation
 
@@ -15,7 +12,7 @@ You can install the development version of utschooldata from GitHub:
 devtools::install_github("almartin82/utschooldata")
 ```
 
-## Quick Start
+## R Quick Start
 
 ``` r
 library(utschooldata)
@@ -34,6 +31,26 @@ enr_multi <- fetch_enr_multi(2020:2024)
 enr_multi %>%
   filter(is_state, subgroup == "total_enrollment", grade_level == "TOTAL") %>%
   select(end_year, n_students)
+```
+
+## Python Quick Start
+
+``` python
+import pyutschooldata as ut
+
+# Fetch 2024 data (2023-24 school year)
+enr = ut.fetch_enr(2024)
+
+# Statewide total
+total = enr[enr['is_state'] & (enr['grade_level'] == 'TOTAL') & (enr['subgroup'] == 'total_enrollment')]['n_students'].sum()
+print(f"{total:,} students")
+
+# Get multiple years
+enr_multi = ut.fetch_enr_multi([2020, 2021, 2022, 2023, 2024])
+
+# Check available years
+years = ut.get_available_years()
+print(f"Data available: {years['min_year']}-{years['max_year']}")
 ```
 
 ## Data Availability
