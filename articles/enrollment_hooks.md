@@ -31,6 +31,15 @@ state_totals <- enr |>
          pct_change = round(change / lag(n_students) * 100, 2))
 
 state_totals
+#>   end_year n_students change pct_change
+#> 1     2019     658952     NA         NA
+#> 2     2020     666858   7906       1.20
+#> 3     2021     665306  -1552      -0.23
+#> 4     2022     674351   9045       1.36
+#> 5     2023     674650    299       0.04
+#> 6     2024     672662  -1988      -0.29
+#> 7     2025     667789  -4873      -0.72
+#> 8     2026     656310 -11479      -1.72
 ```
 
 ``` r
@@ -45,6 +54,8 @@ ggplot(state_totals, aes(x = end_year, y = n_students)) +
     y = "Total Enrollment"
   )
 ```
+
+![](enrollment_hooks_files/figure-html/statewide-chart-1.png)
 
 ------------------------------------------------------------------------
 
@@ -63,6 +74,13 @@ large_districts <- enr |>
 large_districts |>
   filter(end_year == max(end_year)) |>
   arrange(desc(n_students))
+#>   end_year                   district_name n_students
+#> 1     2026                 Alpine District      84215
+#> 2     2026                  Davis District      67466
+#> 3     2026                 Jordan District      55820
+#> 4     2026                Granite District      54467
+#> 5     2026                Canyons District      31499
+#> 6     2026 North Davis Preparatory Academy        933
 ```
 
 ``` r
@@ -81,6 +99,8 @@ enr |>
     color = "District"
   )
 ```
+
+![](enrollment_hooks_files/figure-html/top-districts-chart-1.png)
 
 ------------------------------------------------------------------------
 
@@ -101,6 +121,14 @@ demographics <- enr_2026 |>
   arrange(desc(n_students))
 
 demographics
+#>           subgroup n_students  pct
+#> 1            white     451812 68.8
+#> 2         hispanic     142284 21.7
+#> 3      multiracial      25385  3.9
+#> 4            asian      11385  1.7
+#> 5 pacific_islander      10973  1.7
+#> 6            black       8806  1.3
+#> 7  native_american       5665  0.9
 ```
 
 ``` r
@@ -118,6 +146,8 @@ demographics |>
     y = NULL
   )
 ```
+
+![](enrollment_hooks_files/figure-html/demographics-chart-1.png)
 
 ------------------------------------------------------------------------
 
@@ -137,6 +167,17 @@ pi_districts <- enr_2026 |>
   head(10)
 
 pi_districts
+#>                  district_name n_students   pct
+#> 1  Mana Academy Charter School        193 64.12
+#> 2      Wallace Stegner Academy        145  5.09
+#> 3           Salt Lake District        886  5.02
+#> 4             Granite District       2146  3.94
+#> 5          Logan City District        160  3.15
+#> 6               Provo District        388  2.98
+#> 7              Jordan District       1275  2.28
+#> 8              Tooele District        340  2.16
+#> 9              Alpine District       1331  1.58
+#> 10              Davis District       1023  1.52
 ```
 
 ------------------------------------------------------------------------
@@ -161,6 +202,12 @@ utah_county <- enr |>
   arrange(desc(pct_change))
 
 utah_county
+#> # A tibble: 3 × 4
+#>   district_name   y2019 y2026 pct_change
+#>   <chr>           <dbl> <dbl>      <dbl>
+#> 1 Nebo District   33117 41675       25.8
+#> 2 Alpine District 79748 84215        5.6
+#> 3 Provo District  16165 13010      -19.5
 ```
 
 ``` r
@@ -179,6 +226,8 @@ enr |>
     color = "District"
   )
 ```
+
+![](enrollment_hooks_files/figure-html/growth-chart-1.png)
 
 ------------------------------------------------------------------------
 
@@ -203,6 +252,14 @@ rural <- enr |>
   arrange(pct_change)
 
 rural
+#> # A tibble: 5 × 4
+#>   district_name     y2019 y2026 pct_change
+#>   <chr>             <dbl> <dbl>      <dbl>
+#> 1 Emery District     2181  1907      -12.6
+#> 2 Carbon District    3484  3135      -10  
+#> 3 Grand District     1520  1376       -9.5
+#> 4 San Juan District  2876  2725       -5.3
+#> 5 Millard District   2916  2997        2.8
 ```
 
 ``` r
@@ -222,6 +279,8 @@ enr |>
   )
 ```
 
+![](enrollment_hooks_files/figure-html/regional-chart-1.png)
+
 ------------------------------------------------------------------------
 
 ## 7. Washington County is Utah’s fastest-growing region
@@ -238,6 +297,23 @@ washington <- enr |>
          pct_change = round(change / lag(n_students) * 100, 1))
 
 washington
+#>    end_year             district_name n_students change pct_change
+#> 1      2019       Washington District      31074     NA         NA
+#> 2      2019 George Washington Academy       1021 -30053      -96.7
+#> 3      2020       Washington District      33884  32863     3218.7
+#> 4      2020 George Washington Academy        998 -32886      -97.1
+#> 5      2021       Washington District      35346  34348     3441.7
+#> 6      2021 George Washington Academy       1011 -34335      -97.1
+#> 7      2022       Washington District      36453  35442     3505.6
+#> 8      2022 George Washington Academy       1017 -35436      -97.2
+#> 9      2023       Washington District      36623  35606     3501.1
+#> 10     2023 George Washington Academy       1003 -35620      -97.3
+#> 11     2024       Washington District      36753  35750     3564.3
+#> 12     2024 George Washington Academy        996 -35757      -97.3
+#> 13     2025       Washington District      36006  35010     3515.1
+#> 14     2025 George Washington Academy       1014 -34992      -97.2
+#> 15     2026       Washington District      34396  33382     3292.1
+#> 16     2026 George Washington Academy       1030 -33366      -97.0
 ```
 
 ------------------------------------------------------------------------
@@ -263,6 +339,11 @@ tibble(
   enrollment = c(state_total, charter_total),
   pct = c(100, round(charter_total / state_total * 100, 1))
 )
+#> # A tibble: 2 × 3
+#>   sector             enrollment   pct
+#>   <chr>                   <dbl> <dbl>
+#> 1 All Public Schools     656310   100
+#> 2 Charter Schools        170536    26
 ```
 
 ------------------------------------------------------------------------
@@ -280,6 +361,17 @@ covid_grades <- enr |>
   pivot_wider(names_from = grade_level, values_from = n_students)
 
 covid_grades
+#> # A tibble: 8 × 5
+#>   end_year     K  `01`  `05`  `09`
+#>      <int> <dbl> <dbl> <dbl> <dbl>
+#> 1     2019 49081 49081 53465 51044
+#> 2     2020 48789 50699 52766 51908
+#> 3     2021 46874 49242 51542 53340
+#> 4     2022 48744 49624 51764 55245
+#> 5     2023 46655 50346 50921 55330
+#> 6     2024 45217 48138 52547 54351
+#> 7     2025 44776 46313 51677 53658
+#> 8     2026 43519 45232 51133 53318
 ```
 
 ------------------------------------------------------------------------
@@ -299,6 +391,17 @@ hs_trend <- enr |>
          pct_change = round(change / lag(hs_total) * 100, 1))
 
 hs_trend
+#> # A tibble: 8 × 4
+#>   end_year hs_total change pct_change
+#>      <int>    <dbl>  <dbl>      <dbl>
+#> 1     2019   196008     NA       NA  
+#> 2     2020   200437   4429        2.3
+#> 3     2021   205808   5371        2.7
+#> 4     2022   210817   5009        2.4
+#> 5     2023   214148   3331        1.6
+#> 6     2024   216094   1946        0.9
+#> 7     2025   216526    432        0.2
+#> 8     2026   214601  -1925       -0.9
 ```
 
 ------------------------------------------------------------------------
