@@ -168,6 +168,18 @@ Cache location: `rappdirs::user_cache_dir("utschooldata")`
   Show cached data status
 - `clear_cache(end_year, type)` - Clear cached data
 
+## Enrollment Visualizations
+
+![Utah statewide enrollment
+trends](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/statewide-chart-1.png)
+
+![Top Utah
+districts](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/top-districts-chart-1.png)
+
+See the [full
+vignette](https://almartin82.github.io/utschooldata/articles/enrollment_hooks.html)
+for more insights.
+
 ## Part of the 50 State Schooldata Family
 
 This package is part of a family of R packages providing school
@@ -226,3 +238,9 @@ Package documentation
   [`utschooldata`](https://almartin82.github.io/utschooldata/reference/utschooldata-package.md)
   : utschooldata: Fetch and Process Utah School Data
 
+# Articles
+
+### All vignettes
+
+- [10 Insights from Utah School Enrollment
+  Data](https://almartin82.github.io/utschooldata/articles/enrollment_hooks.md):
