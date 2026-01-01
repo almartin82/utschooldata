@@ -1,14 +1,10 @@
 Package: utschooldata
-Title: Fetch and Process Utah School Data
+Title: Utah School Data
 Version: 0.1.0
 Authors@R:
     person("Al", "Martin", , "almartin@example.com", role = c("aut", "cre"))
-Description: Downloads and processes school enrollment data from the Utah State
-    Board of Education (USBE). Provides functions for fetching enrollment data
-    from USBE data reports and transforming it into tidy format for analysis.
-    Supports data from 2014 to present. Full State, LEA (district), and School-level
-    data is available from 2019 onwards, with grade-level and demographic breakdowns.
-    Historical state-level totals are available for 2014-2018.
+Description: A simple, consistent interface for accessing Utah
+    school data in R.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
