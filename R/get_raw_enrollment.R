@@ -174,6 +174,13 @@ download_usbe_enrollment <- function(end_year) {
   # Clean up temp file
   unlink(tname)
 
+
+  # Standardize numeric column types before binding to avoid type conflicts
+  # (some sheets may have character columns due to suppression markers like "*")
+  state_df <- standardize_numeric_columns(state_df)
+  lea_df <- standardize_numeric_columns(lea_df)
+  school_df <- standardize_numeric_columns(school_df)
+
   # Combine all sheets
   result <- dplyr::bind_rows(state_df, lea_df, school_df)
 
@@ -247,6 +254,56 @@ standardize_columns <- function(df) {
   }
 
   names(df) <- new_names
+  df
+}
+
+
+#' Standardize numeric column types
+#'
+#' Converts columns that should be numeric to numeric type, handling
+#' suppression markers. This ensures consistent types when binding
+#' data frames from different sheets.
+#'
+#' @param df Data frame with potentially mixed column types
+#' @return Data frame with standardized numeric columns
+#' @keywords internal
+standardize_numeric_columns <- function(df) {
+  if (is.null(df)) return(NULL)
+
+  # Columns that should be numeric (enrollment counts)
+  numeric_cols <- c(
+    "total_k12", "row_total",
+    "grade_pk", "grade_k",
+    "grade_01", "grade_02", "grade_03", "grade_04", "grade_05", "grade_06",
+    "grade_07", "grade_08", "grade_09", "grade_10", "grade_11", "grade_12",
+    "female", "male",
+    "white", "black", "hispanic", "asian", "american_indian",
+    "pacific_islander", "multiracial",
+    "econ_disadv", "lep", "special_ed", "homeless",
+    # Also handle original Excel column names that may not have been mapped yet
+    "Female", "Male", "White", "AfAmBlack", "Asian", "Hispanic",
+    "American_Indian", "Pacific_Islander", "Multiple_Race",
+    "Total_K12", "K", "Grade_1", "Grade_2", "Grade_3", "Grade_4",
+    "Grade_5", "Grade_6", "Grade_7", "Grade_8", "Grade_9",
+    "Grade_10", "Grade_11", "Grade_12", "Preschool",
+    "Economically_Disadvantaged", "English_Learner", "Student_With_a_Disability",
+    "Homeless"
+  )
+
+  for (col in names(df)) {
+    if (col %in% numeric_cols) {
+      if (!is.numeric(df[[col]])) {
+        # Convert to numeric, handling suppression markers
+        x <- as.character(df[[col]])
+        x <- gsub(",", "", x)
+        x <- trimws(x)
+        x[x %in% c("*", ".", "-", "-1", "<5", "N<10", "N/A", "NA", "", "N < 10", "n<10")] <- NA_character_
+        x[grepl("^[<>]\\s*\\d+$", x)] <- NA_character_
+        df[[col]] <- suppressWarnings(as.numeric(x))
+      }
+    }
+  }
+
   df
 }
 

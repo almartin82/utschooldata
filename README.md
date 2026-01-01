@@ -2,6 +2,7 @@
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/almartin82/utschooldata/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/almartin82/utschooldata/actions/workflows/R-CMD-check.yaml)
+[![pkgdown](https://github.com/almartin82/utschooldata/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/almartin82/utschooldata/actions/workflows/pkgdown.yaml)
 <!-- badges: end -->
 
 An R package for fetching, processing, and analyzing school enrollment data from Utah's State Board of Education (USBE). It provides a programmatic interface to Utah public school data, enabling researchers, analysts, and education policy professionals to easily access Utah public school enrollment data.
