@@ -18,7 +18,6 @@ Thumbs.db
 
 # Build artifacts
 docs/
-inst/doc/
 
 # Local development
 *.rds
