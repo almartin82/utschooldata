@@ -37,4 +37,4 @@ Package documentation
 
 - [`utschooldata-package`](https://almartin82.github.io/utschooldata/reference/utschooldata-package.md)
   [`utschooldata`](https://almartin82.github.io/utschooldata/reference/utschooldata-package.md)
-  : utschooldata: Fetch and Process Utah School Data
+  : utschooldata: Utah School Data
