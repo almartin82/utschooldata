@@ -7,11 +7,15 @@ library(tidyr)
 library(ggplot2)
 
 theme_set(theme_minimal(base_size = 14))
+
+# Get available years dynamically
+available_years <- get_available_years()
+min_year <- min(available_years)
+max_year <- max(available_years)
 ```
 
 This vignette explores Utah’s public school enrollment data, surfacing
-key trends and demographic patterns across available years of data
-(2019-2026).
+key trends and demographic patterns across available years of data.
 
 ------------------------------------------------------------------------
 
@@ -22,7 +26,7 @@ see steady enrollment growth, unlike many states that saw declines after
 COVID.
 
 ``` r
-enr <- fetch_enr_multi(2019:2026)
+enr <- fetch_enr_multi(available_years)
 
 state_totals <- enr |>
   filter(is_state, subgroup == "total_enrollment", grade_level == "TOTAL") |>
@@ -31,15 +35,20 @@ state_totals <- enr |>
          pct_change = round(change / lag(n_students) * 100, 2))
 
 state_totals
-#>   end_year n_students change pct_change
-#> 1     2019     658952     NA         NA
-#> 2     2020     666858   7906       1.20
-#> 3     2021     665306  -1552      -0.23
-#> 4     2022     674351   9045       1.36
-#> 5     2023     674650    299       0.04
-#> 6     2024     672662  -1988      -0.29
-#> 7     2025     667789  -4873      -0.72
-#> 8     2026     656310 -11479      -1.72
+#>    end_year n_students change pct_change
+#> 1      2014     612088     NA         NA
+#> 2      2015     621748   9660       1.58
+#> 3      2016     633461  11713       1.88
+#> 4      2017     644004  10543       1.66
+#> 5      2018     651796   7792       1.21
+#> 6      2019     658952   7156       1.10
+#> 7      2020     666858   7906       1.20
+#> 8      2021     665306  -1552      -0.23
+#> 9      2022     674351   9045       1.36
+#> 10     2023     674650    299       0.04
+#> 11     2024     672662  -1988      -0.29
+#> 12     2025     667789  -4873      -0.72
+#> 13     2026     656310 -11479      -1.72
 ```
 
 ``` r
@@ -48,7 +57,7 @@ ggplot(state_totals, aes(x = end_year, y = n_students)) +
   geom_point(size = 3, color = "#CC0000") +
   scale_y_continuous(labels = scales::comma) +
   labs(
-    title = "Utah Public School Enrollment (2019-2026)",
+    title = paste0("Utah Public School Enrollment (", min_year, "-", max_year, ")"),
     subtitle = "Steady growth continues in the Beehive State",
     x = "School Year (ending)",
     y = "Total Enrollment"
@@ -111,9 +120,9 @@ enrollment has grown substantially over the past decade, now
 representing a significant share of students.
 
 ``` r
-enr_2026 <- fetch_enr(2026)
+enr_latest <- fetch_enr(max_year)
 
-demographics <- enr_2026 |>
+demographics <- enr_latest |>
   filter(is_state, grade_level == "TOTAL",
          subgroup %in% c("hispanic", "white", "black", "asian", "native_american", "pacific_islander", "multiracial")) |>
   mutate(pct = round(pct * 100, 1)) |>
@@ -140,7 +149,7 @@ demographics |>
   scale_x_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.15))) +
   scale_fill_brewer(palette = "Set2") +
   labs(
-    title = "Utah Student Demographics (2026)",
+    title = paste0("Utah Student Demographics (", max_year, ")"),
     subtitle = "White students remain the majority, but diversity is increasing",
     x = "Number of Students",
     y = NULL
@@ -158,7 +167,7 @@ in the nation, reflecting the state’s significant Polynesian community,
 particularly in Salt Lake County.
 
 ``` r
-pi_districts <- enr_2026 |>
+pi_districts <- enr_latest |>
   filter(is_district, grade_level == "TOTAL", subgroup == "pacific_islander") |>
   filter(n_students > 100) |>
   mutate(pct = round(pct * 100, 2)) |>
@@ -194,20 +203,17 @@ utah_county <- enr |>
          grepl("Alpine|Provo|Nebo", district_name, ignore.case = TRUE)) |>
   group_by(district_name) |>
   summarize(
-    y2019 = n_students[end_year == 2019],
-    y2026 = n_students[end_year == 2026],
-    pct_change = round((y2026 / y2019 - 1) * 100, 1),
+    first_year = n_students[end_year == min_year],
+    last_year = n_students[end_year == max_year],
+    pct_change = round((last_year / first_year - 1) * 100, 1),
     .groups = "drop"
   ) |>
   arrange(desc(pct_change))
 
 utah_county
-#> # A tibble: 3 × 4
-#>   district_name   y2019 y2026 pct_change
-#>   <chr>           <dbl> <dbl>      <dbl>
-#> 1 Nebo District   33117 41675       25.8
-#> 2 Alpine District 79748 84215        5.6
-#> 3 Provo District  16165 13010      -19.5
+#> # A tibble: 0 × 4
+#> # ℹ 4 variables: district_name <chr>, first_year <dbl>, last_year <dbl>,
+#> #   pct_change <dbl>
 ```
 
 ``` r
@@ -244,22 +250,17 @@ rural <- enr |>
   group_by(district_name) |>
   filter(n() >= 5) |>
   summarize(
-    y2019 = n_students[end_year == 2019],
-    y2026 = n_students[end_year == 2026],
-    pct_change = round((y2026 / y2019 - 1) * 100, 1),
+    first_year = n_students[end_year == min_year],
+    last_year = n_students[end_year == max_year],
+    pct_change = round((last_year / first_year - 1) * 100, 1),
     .groups = "drop"
   ) |>
   arrange(pct_change)
 
 rural
-#> # A tibble: 5 × 4
-#>   district_name     y2019 y2026 pct_change
-#>   <chr>             <dbl> <dbl>      <dbl>
-#> 1 Emery District     2181  1907      -12.6
-#> 2 Carbon District    3484  3135      -10  
-#> 3 Grand District     1520  1376       -9.5
-#> 4 San Juan District  2876  2725       -5.3
-#> 5 Millard District   2916  2997        2.8
+#> # A tibble: 0 × 4
+#> # ℹ 4 variables: district_name <chr>, first_year <dbl>, last_year <dbl>,
+#> #   pct_change <dbl>
 ```
 
 ``` r
@@ -325,11 +326,11 @@ across the state serving students who seek alternatives to traditional
 district schools.
 
 ``` r
-state_total <- enr_2026 |>
+state_total <- enr_latest |>
   filter(is_state, subgroup == "total_enrollment", grade_level == "TOTAL") |>
   pull(n_students)
 
-charter_total <- enr_2026 |>
+charter_total <- enr_latest |>
   filter(is_charter, subgroup == "total_enrollment", grade_level == "TOTAL") |>
   summarize(charter_total = sum(n_students, na.rm = TRUE)) |>
   pull(charter_total)
@@ -361,17 +362,22 @@ covid_grades <- enr |>
   pivot_wider(names_from = grade_level, values_from = n_students)
 
 covid_grades
-#> # A tibble: 8 × 5
-#>   end_year     K  `01`  `05`  `09`
-#>      <int> <dbl> <dbl> <dbl> <dbl>
-#> 1     2019 49081 49081 53465 51044
-#> 2     2020 48789 50699 52766 51908
-#> 3     2021 46874 49242 51542 53340
-#> 4     2022 48744 49624 51764 55245
-#> 5     2023 46655 50346 50921 55330
-#> 6     2024 45217 48138 52547 54351
-#> 7     2025 44776 46313 51677 53658
-#> 8     2026 43519 45232 51133 53318
+#> # A tibble: 13 × 5
+#>    end_year     K  `01`  `05`  `09`
+#>       <int> <dbl> <dbl> <dbl> <dbl>
+#>  1     2014 50363 51424 48499 45721
+#>  2     2015 48859 51431 49181 46699
+#>  3     2016 48327 50322 49563 47616
+#>  4     2017 48242 49981 51455 48522
+#>  5     2018 47605 49812 53389 50125
+#>  6     2019 49081 49081 53465 51044
+#>  7     2020 48789 50699 52766 51908
+#>  8     2021 46874 49242 51542 53340
+#>  9     2022 48744 49624 51764 55245
+#> 10     2023 46655 50346 50921 55330
+#> 11     2024 45217 48138 52547 54351
+#> 12     2025 44776 46313 51677 53658
+#> 13     2026 43519 45232 51133 53318
 ```
 
 ------------------------------------------------------------------------
@@ -391,17 +397,22 @@ hs_trend <- enr |>
          pct_change = round(change / lag(hs_total) * 100, 1))
 
 hs_trend
-#> # A tibble: 8 × 4
-#>   end_year hs_total change pct_change
-#>      <int>    <dbl>  <dbl>      <dbl>
-#> 1     2019   196008     NA       NA  
-#> 2     2020   200437   4429        2.3
-#> 3     2021   205808   5371        2.7
-#> 4     2022   210817   5009        2.4
-#> 5     2023   214148   3331        1.6
-#> 6     2024   216094   1946        0.9
-#> 7     2025   216526    432        0.2
-#> 8     2026   214601  -1925       -0.9
+#> # A tibble: 13 × 4
+#>    end_year hs_total change pct_change
+#>       <int>    <dbl>  <dbl>      <dbl>
+#>  1     2014   173049     NA       NA  
+#>  2     2015   178071   5022        2.9
+#>  3     2016   183492   5421        3  
+#>  4     2017   187727   4235        2.3
+#>  5     2018   192340   4613        2.5
+#>  6     2019   196008   3668        1.9
+#>  7     2020   200437   4429        2.3
+#>  8     2021   205808   5371        2.7
+#>  9     2022   210817   5009        2.4
+#> 10     2023   214148   3331        1.6
+#> 11     2024   216094   1946        0.9
+#> 12     2025   216526    432        0.2
+#> 13     2026   214601  -1925       -0.9
 ```
 
 ------------------------------------------------------------------------
