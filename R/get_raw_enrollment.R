@@ -6,7 +6,7 @@
 # the Utah State Board of Education (USBE).
 #
 # Data Sources:
-# - Fall Enrollment by Grade Level and Demographics (2019-present)
+# - Fall Enrollment by Grade Level and Demographics (2019-2026)
 #   URL pattern: https://www.schools.utah.gov/datastatistics/_datastatisticsfiles_/
 #                _reports_/_enrollmentmembership_/{YEAR}FallEnrollmentGradeLevelDemographics.xlsx
 #
@@ -16,7 +16,7 @@
 #   Contains "State Total Time Series" sheet with historical state-level data
 #
 # Format Eras:
-# - Era 1 (2019-present): Excel files with consistent column structure
+# - Era 1 (2019-2026): Excel files with consistent column structure
 #   Contains school-level enrollment with grade and demographic breakdowns
 #   Excel workbook has multiple sheets: State, By County, By LEA, By School
 #

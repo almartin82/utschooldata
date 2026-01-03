@@ -13,10 +13,10 @@
 #' Education (USBE) Fall Enrollment reports.
 #'
 #' @param end_year A school year. Year is the end of the academic year - e.g., 2023-24
-#'   school year is year '2024'. Valid values are 2014-2024.
+#'   school year is year '2024'. Valid values are 2014-2026.
 #'
 #'   **Note on data availability:**
-#'   - Years 2019-2024: Full State, LEA (district), and School-level data
+#'   - Years 2019-2026: Full State, LEA (district), and School-level data
 #'   - Years 2014-2018: State-level totals only (from historical time series)
 #'
 #' @param tidy If TRUE (default), returns data in long (tidy) format with subgroup
