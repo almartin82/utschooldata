@@ -152,6 +152,21 @@ pi_districts <- enr_latest |>
 pi_districts
 ```
 
+```{r pacific-islander-chart}
+pi_districts |>
+  mutate(district_name = forcats::fct_reorder(district_name, pct)) |>
+  ggplot(aes(x = pct, y = district_name, fill = n_students)) +
+  geom_col() +
+  scale_fill_viridis_c(option = "plasma", labels = scales::comma) +
+  labs(
+    title = "Pacific Islander Students as % of District Enrollment",
+    subtitle = "Utah has one of the highest PI student populations nationally",
+    x = "Percent of District",
+    y = NULL,
+    fill = "Students"
+  )
+```
+
 ---
 
 ## 5. Utah County is the growth engine
@@ -248,6 +263,21 @@ washington <- enr |>
 washington
 ```
 
+```{r washington-chart}
+washington |>
+  ggplot(aes(x = end_year, y = n_students)) +
+  geom_area(fill = "#E65100", alpha = 0.3) +
+  geom_line(color = "#E65100", linewidth = 1.2) +
+  geom_point(color = "#E65100", size = 3) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Washington County School District Enrollment",
+    subtitle = "St. George area leads Utah in enrollment growth",
+    x = "School Year",
+    y = "Total Enrollment"
+  )
+```
+
 ---
 
 ## 8. Charter schools serve a growing share of Utah students
@@ -264,11 +294,34 @@ charter_total <- enr_latest |>
   summarize(charter_total = sum(n_students, na.rm = TRUE)) |>
   pull(charter_total)
 
-tibble(
+charter_summary <- tibble(
   sector = c("All Public Schools", "Charter Schools"),
   enrollment = c(state_total, charter_total),
   pct = c(100, round(charter_total / state_total * 100, 1))
 )
+
+charter_summary
+```
+
+```{r charters-chart}
+tibble(
+  sector = c("Traditional Districts", "Charter Schools"),
+  enrollment = c(state_total - charter_total, charter_total)
+) |>
+  mutate(pct = enrollment / sum(enrollment) * 100,
+         label = paste0(round(pct, 1), "%")) |>
+  ggplot(aes(x = "", y = enrollment, fill = sector)) +
+  geom_col(width = 1) +
+  coord_polar(theta = "y") +
+  geom_text(aes(label = label), position = position_stack(vjust = 0.5), color = "white", size = 5) +
+  scale_fill_manual(values = c("Traditional Districts" = "#1976D2", "Charter Schools" = "#43A047")) +
+  labs(
+    title = paste0("Utah Public School Enrollment by Sector (", max_year, ")"),
+    subtitle = "Charter schools serve a growing share of students",
+    fill = NULL
+  ) +
+  theme_void() +
+  theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5))
 ```
 
 ---
@@ -287,6 +340,27 @@ covid_grades <- enr |>
 covid_grades
 ```
 
+```{r covid-chart}
+enr |>
+  filter(is_state, subgroup == "total_enrollment",
+         grade_level %in% c("K", "01", "05", "09")) |>
+  mutate(grade_level = factor(grade_level, levels = c("K", "01", "05", "09"),
+                               labels = c("Kindergarten", "1st Grade", "5th Grade", "9th Grade"))) |>
+  ggplot(aes(x = end_year, y = n_students, color = grade_level)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  geom_vline(xintercept = 2021, linetype = "dashed", alpha = 0.5) +
+  annotate("text", x = 2021, y = max(covid_grades$K) * 1.05, label = "COVID", hjust = -0.1, size = 3) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Utah Grade-Level Enrollment Over Time",
+    subtitle = "Kindergarten recovered quickly after the 2020-21 dip",
+    x = "School Year",
+    y = "Enrollment",
+    color = "Grade"
+  )
+```
+
 ---
 
 ## 10. High school enrollment is surging
@@ -303,6 +377,21 @@ hs_trend <- enr |>
          pct_change = round(change / lag(hs_total) * 100, 1))
 
 hs_trend
+```
+
+```{r high-school-chart}
+hs_trend |>
+  ggplot(aes(x = end_year, y = hs_total)) +
+  geom_area(fill = "#7B1FA2", alpha = 0.3) +
+  geom_line(color = "#7B1FA2", linewidth = 1.2) +
+  geom_point(color = "#7B1FA2", size = 3) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Utah High School Enrollment (Grades 9-12)",
+    subtitle = "Steady growth as larger cohorts reach high school",
+    x = "School Year",
+    y = "Total HS Enrollment"
+  )
 ```
 
 ---

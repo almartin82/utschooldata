@@ -65,11 +65,11 @@ print(f"Data available: {years['min_year']}-{years['max_year']}")
 
 | Era | Years | Format | Notes |
 |-----|-------|--------|-------|
-| Current | 2018-2026 | Excel (.xlsx) | Fall Enrollment by Grade Level and Demographics |
+| Current | 2014-2026 | Excel (.xlsx) | Fall Enrollment by Grade Level and Demographics |
 
-**Earliest available year**: 2018
+**Earliest available year**: 2014
 **Most recent available year**: 2026
-**Total years of data**: 9 years
+**Total years of data**: 13 years
 
 ### Data Source
 
