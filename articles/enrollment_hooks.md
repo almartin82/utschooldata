@@ -189,6 +189,23 @@ pi_districts
 #> 10              Davis District       1023  1.52
 ```
 
+``` r
+pi_districts |>
+  mutate(district_name = forcats::fct_reorder(district_name, pct)) |>
+  ggplot(aes(x = pct, y = district_name, fill = n_students)) +
+  geom_col() +
+  scale_fill_viridis_c(option = "plasma", labels = scales::comma) +
+  labs(
+    title = "Pacific Islander Students as % of District Enrollment",
+    subtitle = "Utah has one of the highest PI student populations nationally",
+    x = "Percent of District",
+    y = NULL,
+    fill = "Students"
+  )
+```
+
+![](enrollment_hooks_files/figure-html/pacific-islander-chart-1.png)
+
 ------------------------------------------------------------------------
 
 ## 5. Utah County is the growth engine
@@ -317,6 +334,23 @@ washington
 #> 16     2026 George Washington Academy       1030 -33366      -97.0
 ```
 
+``` r
+washington |>
+  ggplot(aes(x = end_year, y = n_students)) +
+  geom_area(fill = "#E65100", alpha = 0.3) +
+  geom_line(color = "#E65100", linewidth = 1.2) +
+  geom_point(color = "#E65100", size = 3) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Washington County School District Enrollment",
+    subtitle = "St. George area leads Utah in enrollment growth",
+    x = "School Year",
+    y = "Total Enrollment"
+  )
+```
+
+![](enrollment_hooks_files/figure-html/washington-chart-1.png)
+
 ------------------------------------------------------------------------
 
 ## 8. Charter schools serve a growing share of Utah students
@@ -335,17 +369,42 @@ charter_total <- enr_latest |>
   summarize(charter_total = sum(n_students, na.rm = TRUE)) |>
   pull(charter_total)
 
-tibble(
+charter_summary <- tibble(
   sector = c("All Public Schools", "Charter Schools"),
   enrollment = c(state_total, charter_total),
   pct = c(100, round(charter_total / state_total * 100, 1))
 )
+
+charter_summary
 #> # A tibble: 2 × 3
 #>   sector             enrollment   pct
 #>   <chr>                   <dbl> <dbl>
 #> 1 All Public Schools     656310   100
 #> 2 Charter Schools        170536    26
 ```
+
+``` r
+tibble(
+  sector = c("Traditional Districts", "Charter Schools"),
+  enrollment = c(state_total - charter_total, charter_total)
+) |>
+  mutate(pct = enrollment / sum(enrollment) * 100,
+         label = paste0(round(pct, 1), "%")) |>
+  ggplot(aes(x = "", y = enrollment, fill = sector)) +
+  geom_col(width = 1) +
+  coord_polar(theta = "y") +
+  geom_text(aes(label = label), position = position_stack(vjust = 0.5), color = "white", size = 5) +
+  scale_fill_manual(values = c("Traditional Districts" = "#1976D2", "Charter Schools" = "#43A047")) +
+  labs(
+    title = paste0("Utah Public School Enrollment by Sector (", max_year, ")"),
+    subtitle = "Charter schools serve a growing share of students",
+    fill = NULL
+  ) +
+  theme_void() +
+  theme(legend.position = "bottom", plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5))
+```
+
+![](enrollment_hooks_files/figure-html/charters-chart-1.png)
 
 ------------------------------------------------------------------------
 
@@ -379,6 +438,29 @@ covid_grades
 #> 12     2025 44776 46313 51677 53658
 #> 13     2026 43519 45232 51133 53318
 ```
+
+``` r
+enr |>
+  filter(is_state, subgroup == "total_enrollment",
+         grade_level %in% c("K", "01", "05", "09")) |>
+  mutate(grade_level = factor(grade_level, levels = c("K", "01", "05", "09"),
+                               labels = c("Kindergarten", "1st Grade", "5th Grade", "9th Grade"))) |>
+  ggplot(aes(x = end_year, y = n_students, color = grade_level)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  geom_vline(xintercept = 2021, linetype = "dashed", alpha = 0.5) +
+  annotate("text", x = 2021, y = max(covid_grades$K) * 1.05, label = "COVID", hjust = -0.1, size = 3) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Utah Grade-Level Enrollment Over Time",
+    subtitle = "Kindergarten recovered quickly after the 2020-21 dip",
+    x = "School Year",
+    y = "Enrollment",
+    color = "Grade"
+  )
+```
+
+![](enrollment_hooks_files/figure-html/covid-chart-1.png)
 
 ------------------------------------------------------------------------
 
@@ -414,6 +496,23 @@ hs_trend
 #> 12     2025   216526    432        0.2
 #> 13     2026   214601  -1925       -0.9
 ```
+
+``` r
+hs_trend |>
+  ggplot(aes(x = end_year, y = hs_total)) +
+  geom_area(fill = "#7B1FA2", alpha = 0.3) +
+  geom_line(color = "#7B1FA2", linewidth = 1.2) +
+  geom_point(color = "#7B1FA2", size = 3) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Utah High School Enrollment (Grades 9-12)",
+    subtitle = "Steady growth as larger cohorts reach high school",
+    x = "School Year",
+    y = "Total HS Enrollment"
+  )
+```
+
+![](enrollment_hooks_files/figure-html/high-school-chart-1.png)
 
 ------------------------------------------------------------------------
 
