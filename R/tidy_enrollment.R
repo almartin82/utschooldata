@@ -10,7 +10,7 @@
 # Suppress R CMD check notes about global variables used in dplyr pipelines
 utils::globalVariables(c(
   "n_students", "row_total", "subgroup", "grade_level",
-  "type", "charter_flag"
+  "type", "charter_flag", "aggregation_flag"
 ))
 
 #' Tidy enrollment data
@@ -68,7 +68,10 @@ tidy_enr <- function(df) {
           dplyr::select(dplyr::all_of(c(invariants, "n_students", "row_total"))) |>
           dplyr::mutate(
             subgroup = .x,
-            pct = n_students / row_total,
+            pct = dplyr::case_when(
+              row_total > 0 ~ pmin(n_students / row_total, 1.0),
+              TRUE ~ 0.0
+            ),
             grade_level = "TOTAL"
           ) |>
           dplyr::select(dplyr::all_of(c(invariants, "grade_level", "subgroup", "n_students", "pct")))
@@ -124,7 +127,10 @@ tidy_enr <- function(df) {
           dplyr::select(dplyr::all_of(c(invariants, "n_students", "row_total"))) |>
           dplyr::mutate(
             subgroup = "total_enrollment",
-            pct = n_students / row_total,
+            pct = dplyr::case_when(
+              row_total > 0 ~ pmin(n_students / row_total, 1.0),
+              TRUE ~ 0.0
+            ),
             grade_level = gl
           ) |>
           dplyr::select(dplyr::all_of(c(invariants, "grade_level", "subgroup", "n_students", "pct")))
@@ -164,6 +170,14 @@ id_enr_aggs <- function(df) {
 
       # Campus level: Type == "Campus"
       is_campus = type == "Campus",
+
+      # Aggregation flag based on ID presence
+      aggregation_flag = dplyr::case_when(
+        !is.na(district_id) & district_id != "" &
+        !is.na(campus_id) & campus_id != "" ~ "campus",
+        !is.na(district_id) & district_id != "" ~ "district",
+        TRUE ~ "state"
+      ),
 
       # Charter detection - based on charter_flag column if available
       is_charter = if ("charter_flag" %in% names(df)) {
