@@ -18,26 +18,6 @@ You can install the development version of utschooldata from GitHub:
 devtools::install_github("almartin82/utschooldata")
 ```
 
-## R Quick Start
-
-```r
-library(utschooldata)
-
-# Get 2024 enrollment data (2023-24 school year)
-enr_2024 <- fetch_enr(2024)
-
-# View state totals
-enr_2024 %>%
-  filter(is_state, subgroup == "total_enrollment", grade_level == "TOTAL")
-
-# Get data for multiple years
-enr_multi <- fetch_enr_multi(2020:2024)
-
-# Analyze enrollment trends
-enr_multi %>%
-  filter(is_state, subgroup == "total_enrollment", grade_level == "TOTAL") %>%
-  select(end_year, n_students)
-```
 
 ## Python Quick Start
 
@@ -146,25 +126,6 @@ Data is downloaded from the Utah State Board of Education (USBE) Data and Statis
 | is_campus | logical | TRUE for school-level rows |
 | is_charter | logical | TRUE for charter schools |
 
-## Caching
-
-The package caches downloaded data locally to avoid repeated downloads:
-
-```r
-# View cache status
-cache_status()
-
-# Clear all cached data
-clear_cache()
-
-# Clear specific year
-clear_cache(2024)
-
-# Force fresh download (ignore cache)
-fetch_enr(2024, use_cache = FALSE)
-```
-
-Cache location: `rappdirs::user_cache_dir("utschooldata")`
 
 ## Functions
 
