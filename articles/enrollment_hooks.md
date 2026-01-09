@@ -26,7 +26,7 @@ see steady enrollment growth, unlike many states that saw declines after
 COVID.
 
 ``` r
-enr <- fetch_enr_multi(available_years)
+enr <- fetch_enr_multi(available_years, use_cache = TRUE)
 
 state_totals <- enr |>
   filter(is_state, subgroup == "total_enrollment", grade_level == "TOTAL") |>
@@ -120,7 +120,7 @@ enrollment has grown substantially over the past decade, now
 representing a significant share of students.
 
 ``` r
-enr_latest <- fetch_enr(max_year)
+enr_latest <- fetch_enr(max_year, use_cache = TRUE)
 
 demographics <- enr_latest |>
   filter(is_state, grade_level == "TOTAL",
