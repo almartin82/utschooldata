@@ -56,7 +56,7 @@ enr_multi = ut.fetch_enr_multi([2020, 2021, 2022, 2023, 2024])
 
 # Check available years
 years = ut.get_available_years()
-print(f"Data available: {years['min_year']}-{years['max_year']}")
+print(f"Data available: {min(years)}-{max(years)}")
 ```
 
 ## Data Availability
