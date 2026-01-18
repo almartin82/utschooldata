@@ -413,3 +413,11 @@ These patterns reflect Utah's unique demographics--the youngest state in the nat
 ---
 
 *Data sourced from the Utah State Board of Education [Data and Statistics](https://schools.utah.gov/datastatistics/reports).*
+
+---
+
+## Session Info
+
+```{r session-info}
+sessionInfo()
+```
