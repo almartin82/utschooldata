@@ -37,7 +37,7 @@
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/enrollment_hooks.html">10 Insights from Utah School Enrollment Data</a></li>
+<li><a class="dropdown-item" href="articles/enrollment_hooks.html">15 Insights from Utah School Enrollment Data</a></li>
   </ul>
 </li>
       </ul>
@@ -60,56 +60,572 @@
 
 <p>Fetch and analyze Utah school enrollment data from <a href="https://schools.utah.gov/datastatistics/reports" class="external-link">USBE</a> in R or Python.</p>
 <div class="section level2">
-<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+<h2 id="why-this-package">Why This Package?<a class="anchor" aria-label="anchor" href="#why-this-package"></a>
 </h2>
-<p>You can install the development version of utschooldata from GitHub:</p>
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"almartin82/utschooldata"</span><span class="op">)</span></span></code></pre></div>
+<p>Utah is one of the fastest-growing states with the youngest population in America, yet school enrollment patterns defy simple narratives. While total enrollment grew 9% since 2014, kindergarten enrollment has dropped 11%. Suburban districts along the Wasatch Front are booming while Salt Lake City schools have lost 17% of students since 2019. Hispanic enrollment is up 46%, and the English learner population nearly doubled.</p>
+<p>This package provides direct access to Utah State Board of Education enrollment data–no manual downloads, no web scraping fragility, just clean data ready for analysis.</p>
+<p>Part of the <a href="https://github.com/almartin82/njschooldata" class="external-link">state schooldata project</a>, extending the original <a href="https://github.com/almartin82/njschooldata" class="external-link">njschooldata</a> package to all 50 states.</p>
 </div>
 <div class="section level2">
 <h2 id="r-quick-start">R Quick Start<a class="anchor" aria-label="anchor" href="#r-quick-start"></a>
 </h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://almartin82.github.io/utschooldata">utschooldata</a></span><span class="op">)</span></span>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("devtools")</span></span>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"almartin82/utschooldata"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># Get 2024 enrollment data (2023-24 school year)</span></span>
-<span><span class="va">enr_2024</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://almartin82.github.io/utschooldata">utschooldata</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Get 2025 enrollment data</span></span>
+<span><span class="va">enr</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2025</span>, use_cache <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># View state totals</span></span>
-<span><span class="va">enr_2024</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Get data for multiple years</span></span>
-<span><span class="va">enr_multi</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fetch_enr_multi.html">fetch_enr_multi</a></span><span class="op">(</span><span class="fl">2020</span><span class="op">:</span><span class="fl">2024</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Analyze enrollment trends</span></span>
-<span><span class="va">enr_multi</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span> <span class="op">%&gt;%</span></span>
-<span>  <span class="fu">select</span><span class="op">(</span><span class="va">end_year</span>, <span class="va">n_students</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">enr</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">end_year</span>, <span class="va">n_students</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 1 x 2</span></span>
+<span><span class="co">#&gt;   end_year n_students</span></span>
+<span><span class="co">#&gt;      &lt;dbl&gt;      &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1     2025     667789</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="python-quick-start">Python Quick Start<a class="anchor" aria-label="anchor" href="#python-quick-start"></a>
 </h2>
-<div class="sourceCode" id="cb3"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="im">import</span> pyutschooldata <span class="im">as</span> ut</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co"># Fetch 2024 data (2023-24 school year)</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>enr <span class="op">=</span> ut.fetch_enr(<span class="dv">2024</span>)</span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co"># Statewide total</span></span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>total <span class="op">=</span> enr[enr[<span class="st">'is_state'</span>] <span class="op">&amp;</span> (enr[<span class="st">'grade_level'</span>] <span class="op">==</span> <span class="st">'TOTAL'</span>) <span class="op">&amp;</span> (enr[<span class="st">'subgroup'</span>] <span class="op">==</span> <span class="st">'total_enrollment'</span>)][<span class="st">'n_students'</span>].<span class="bu">sum</span>()</span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>total<span class="sc">:,}</span><span class="ss"> students"</span>)</span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co"># Get multiple years</span></span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>enr_multi <span class="op">=</span> ut.fetch_enr_multi([<span class="dv">2020</span>, <span class="dv">2021</span>, <span class="dv">2022</span>, <span class="dv">2023</span>, <span class="dv">2024</span>])</span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a></span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co"># Check available years</span></span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>years <span class="op">=</span> ut.get_available_years()</span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Data available: </span><span class="sc">{</span><span class="bu">min</span>(years)<span class="sc">}</span><span class="ss">-</span><span class="sc">{</span><span class="bu">max</span>(years)<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="im">import</span> pyutschooldata <span class="im">as</span> ut</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co"># Fetch 2025 data</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>enr <span class="op">=</span> ut.fetch_enr(<span class="dv">2025</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co"># Statewide total</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>total <span class="op">=</span> enr[(enr[<span class="st">'is_state'</span>]) <span class="op">&amp;</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>            (enr[<span class="st">'grade_level'</span>] <span class="op">==</span> <span class="st">'TOTAL'</span>) <span class="op">&amp;</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>            (enr[<span class="st">'subgroup'</span>] <span class="op">==</span> <span class="st">'total_enrollment'</span>)][<span class="st">'n_students'</span>].<span class="bu">sum</span>()</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>total<span class="sc">:,}</span><span class="ss"> students"</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co"># 667,789 students</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co"># Check available years</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>years <span class="op">=</span> ut.get_available_years()</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Data available: </span><span class="sc">{</span><span class="bu">min</span>(years)<span class="sc">}</span><span class="ss">-</span><span class="sc">{</span><span class="bu">max</span>(years)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co"># Data available: 2014-2026</span></span></code></pre></div>
+<hr>
 </div>
 <div class="section level2">
-<h2 id="data-availability">Data Availability<a class="anchor" aria-label="anchor" href="#data-availability"></a>
+<h2 id="id_15-insights-from-utah-school-enrollment-data">15 Insights from Utah School Enrollment Data<a class="anchor" aria-label="anchor" href="#id_15-insights-from-utah-school-enrollment-data"></a>
 </h2>
+<div class="section level3">
+<h3 id="id_1-utahs-enrollment-continues-to-grow">1. Utah’s enrollment continues to grow<a class="anchor" aria-label="anchor" href="#id_1-utahs-enrollment-continues-to-grow"></a>
+</h3>
+<p>Utah has one of the youngest populations in the nation and continues to see steady enrollment growth, unlike many states that saw declines after COVID.</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://almartin82.github.io/utschooldata">utschooldata</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/get_theme.html" class="external-link">theme_set</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">14</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Get available years dynamically</span></span>
+<span><span class="va">available_years</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/get_available_years.html">get_available_years</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="va">min_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="va">available_years</span><span class="op">)</span></span>
+<span><span class="va">max_year</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">available_years</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">enr</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fetch_enr_multi.html">fetch_enr_multi</a></span><span class="op">(</span><span class="va">available_years</span>, use_cache <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">state_totals</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">end_year</span>, <span class="va">n_students</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>change <span class="op">=</span> <span class="va">n_students</span> <span class="op">-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lag</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span>,</span>
+<span>         pct_change <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">change</span> <span class="op">/</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lag</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">state_totals</span></span>
+<span><span class="co">#&gt; # A tibble: 13 x 4</span></span>
+<span><span class="co">#&gt;    end_year n_students change pct_change</span></span>
+<span><span class="co">#&gt;       &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1     2014     612088     NA      NA</span></span>
+<span><span class="co">#&gt;  2     2015     621748   9660       1.58</span></span>
+<span><span class="co">#&gt;  3     2016     633461  11713       1.88</span></span>
+<span><span class="co">#&gt;  4     2017     644004  10543       1.66</span></span>
+<span><span class="co">#&gt;  5     2018     651796   7792       1.21</span></span>
+<span><span class="co">#&gt;  6     2019     658952   7156       1.1</span></span>
+<span><span class="co">#&gt;  7     2020     666858   7906       1.2</span></span>
+<span><span class="co">#&gt;  8     2021     665306  -1552      -0.23</span></span>
+<span><span class="co">#&gt;  9     2022     674351   9045       1.36</span></span>
+<span><span class="co">#&gt; 10     2023     674650    299       0.04</span></span>
+<span><span class="co">#&gt; 11     2024     672662  -1988      -0.29</span></span>
+<span><span class="co">#&gt; 12     2025     667789  -4873      -0.72</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/statewide-chart-1.png" alt="Statewide enrollment"><div class="figcaption">Statewide enrollment</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_2-granite-and-alpine-are-utahs-enrollment-giants">2. Granite and Alpine are Utah’s enrollment giants<a class="anchor" aria-label="anchor" href="#id_2-granite-and-alpine-are-utahs-enrollment-giants"></a>
+</h3>
+<p>Utah’s two largest districts–Granite and Alpine–each serve well over 57,000 students, but their trajectories differ. Salt Lake City has seen declines while suburban districts grow.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">large_districts</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_district</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span>,</span>
+<span>         <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"Granite|Alpine|Davis|Jordan|Canyons|Salt Lake City"</span>, <span class="va">district_name</span>, ignore.case <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">end_year</span>, <span class="va">district_name</span>, <span class="va">n_students</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">large_districts</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">end_year</span> <span class="op">==</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">end_year</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 6 x 3</span></span>
+<span><span class="co">#&gt;   end_year district_name      n_students</span></span>
+<span><span class="co">#&gt;      &lt;dbl&gt; &lt;chr&gt;                   &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1     2025 Alpine District         84757</span></span>
+<span><span class="co">#&gt; 2     2025 Davis District          69602</span></span>
+<span><span class="co">#&gt; 3     2025 Jordan District         57083</span></span>
+<span><span class="co">#&gt; 4     2025 Granite District        57038</span></span>
+<span><span class="co">#&gt; 5     2025 Canyons District        32289</span></span>
+<span><span class="co">#&gt; 6     2025 Salt Lake District      18535</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/top-districts-chart-1.png" alt="Top districts"><div class="figcaption">Top districts</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_3-utahs-student-body-is-diversifying">3. Utah’s student body is diversifying<a class="anchor" aria-label="anchor" href="#id_3-utahs-student-body-is-diversifying"></a>
+</h3>
+<p>While Utah remains less diverse than national averages, Hispanic enrollment has grown substantially over the past decade, now representing 21% of students.</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">enr_latest</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="va">max_year</span>, use_cache <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">demographics</span> <span class="op">&lt;-</span> <span class="va">enr_latest</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span>,</span>
+<span>         <span class="va">subgroup</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"hispanic"</span>, <span class="st">"white"</span>, <span class="st">"black"</span>, <span class="st">"asian"</span>, <span class="st">"native_american"</span>, <span class="st">"pacific_islander"</span>, <span class="st">"multiracial"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>pct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pct</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">subgroup</span>, <span class="va">n_students</span>, <span class="va">pct</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">demographics</span></span>
+<span><span class="co">#&gt; # A tibble: 7 x 3</span></span>
+<span><span class="co">#&gt;   subgroup         n_students   pct</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;                 &lt;dbl&gt; &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1 white                463352  69.4</span></span>
+<span><span class="co">#&gt; 2 hispanic             142267  21.3</span></span>
+<span><span class="co">#&gt; 3 multiracial           25478   3.8</span></span>
+<span><span class="co">#&gt; 4 asian                 11184   1.7</span></span>
+<span><span class="co">#&gt; 5 pacific_islander      10844   1.6</span></span>
+<span><span class="co">#&gt; 6 black                  8827   1.3</span></span>
+<span><span class="co">#&gt; 7 native_american        5837   0.9</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/demographics-chart-1.png" alt="Demographics"><div class="figcaption">Demographics</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_4-pacific-islander-students-are-a-unique-utah-story">4. Pacific Islander students are a unique Utah story<a class="anchor" aria-label="anchor" href="#id_4-pacific-islander-students-are-a-unique-utah-story"></a>
+</h3>
+<p>Utah has one of the highest concentrations of Pacific Islander students in the nation, reflecting the state’s significant Polynesian community, particularly in Salt Lake County.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">pi_districts</span> <span class="op">&lt;-</span> <span class="va">enr_latest</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_district</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"pacific_islander"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">n_students</span> <span class="op">&gt;</span> <span class="fl">100</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>pct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pct</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">district_name</span>, <span class="va">n_students</span>, <span class="va">pct</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">pct</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="fl">10</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">pi_districts</span></span>
+<span><span class="co">#&gt; # A tibble: 10 x 3</span></span>
+<span><span class="co">#&gt;    district_name                  n_students   pct</span></span>
+<span><span class="co">#&gt;    &lt;chr&gt;                               &lt;dbl&gt; &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1 Mana Academy Charter School           185 61.5</span></span>
+<span><span class="co">#&gt;  2 Wallace Stegner Academy               143  6.6</span></span>
+<span><span class="co">#&gt;  3 Salt Lake District                    919  4.96</span></span>
+<span><span class="co">#&gt;  4 Granite District                     2092  3.67</span></span>
+<span><span class="co">#&gt;  5 Provo District                        432  3.21</span></span>
+<span><span class="co">#&gt;  6 Logan City District                   135  2.67</span></span>
+<span><span class="co">#&gt;  7 Jordan District                      1272  2.23</span></span>
+<span><span class="co">#&gt;  8 Tooele District                       349  2.23</span></span>
+<span><span class="co">#&gt;  9 Alpine District                      1287  1.52</span></span>
+<span><span class="co">#&gt; 10 Davis District                       1025  1.47</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/pacific-islander-chart-1.png" alt="Pacific Islander"><div class="figcaption">Pacific Islander</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_5-utah-county-is-the-growth-engine">5. Utah County is the growth engine<a class="anchor" aria-label="anchor" href="#id_5-utah-county-is-the-growth-engine"></a>
+</h3>
+<p>Provo, Alpine, and Nebo districts in Utah County are seeing consistent growth as young families settle along the I-15 corridor south of Salt Lake.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">utah_county</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_district</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span>,</span>
+<span>         <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"Alpine|Provo|Nebo"</span>, <span class="va">district_name</span>, ignore.case <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">district_name</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span></span>
+<span>    first_year <span class="op">=</span> <span class="va">n_students</span><span class="op">[</span><span class="va">end_year</span> <span class="op">==</span> <span class="va">min_year</span><span class="op">]</span>,</span>
+<span>    last_year <span class="op">=</span> <span class="va">n_students</span><span class="op">[</span><span class="va">end_year</span> <span class="op">==</span> <span class="va">max_year</span><span class="op">]</span>,</span>
+<span>    pct_change <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="op">(</span><span class="va">last_year</span> <span class="op">/</span> <span class="va">first_year</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>    .groups <span class="op">=</span> <span class="st">"drop"</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">pct_change</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">utah_county</span></span>
+<span><span class="co">#&gt; # A tibble: 3 x 4</span></span>
+<span><span class="co">#&gt;   district_name   first_year last_year pct_change</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;                &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1 Nebo District        33117     42946       29.7</span></span>
+<span><span class="co">#&gt; 2 Alpine District      79748     84757        6.3</span></span>
+<span><span class="co">#&gt; 3 Provo District       16165     13463      -16.7</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/growth-chart-1.png" alt="Growth chart"><div class="figcaption">Growth chart</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_6-rural-districts-face-decline">6. Rural districts face decline<a class="anchor" aria-label="anchor" href="#id_6-rural-districts-face-decline"></a>
+</h3>
+<p>While the Wasatch Front booms, rural districts in southern and eastern Utah face enrollment pressure as families move to urban centers for jobs and services.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">rural</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_district</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span>,</span>
+<span>         <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"Carbon|Emery|Grand|San Juan|Millard"</span>, <span class="va">district_name</span>, ignore.case <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">district_name</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/context.html" class="external-link">n</a></span><span class="op">(</span><span class="op">)</span> <span class="op">&gt;=</span> <span class="fl">5</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span></span>
+<span>    first_year <span class="op">=</span> <span class="va">n_students</span><span class="op">[</span><span class="va">end_year</span> <span class="op">==</span> <span class="va">min_year</span><span class="op">]</span>,</span>
+<span>    last_year <span class="op">=</span> <span class="va">n_students</span><span class="op">[</span><span class="va">end_year</span> <span class="op">==</span> <span class="va">max_year</span><span class="op">]</span>,</span>
+<span>    pct_change <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="op">(</span><span class="va">last_year</span> <span class="op">/</span> <span class="va">first_year</span> <span class="op">-</span> <span class="fl">1</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>    .groups <span class="op">=</span> <span class="st">"drop"</span></span>
+<span>  <span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="va">pct_change</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">rural</span></span>
+<span><span class="co">#&gt; # A tibble: 5 x 4</span></span>
+<span><span class="co">#&gt;   district_name     first_year last_year pct_change</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;                  &lt;dbl&gt;     &lt;dbl&gt;      &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1 Grand District          1520      1371       -9.8</span></span>
+<span><span class="co">#&gt; 2 Emery District          2181      1986       -8.9</span></span>
+<span><span class="co">#&gt; 3 Carbon District         3484      3186       -8.6</span></span>
+<span><span class="co">#&gt; 4 San Juan District       2876      2768       -3.8</span></span>
+<span><span class="co">#&gt; 5 Millard District        2916      3064        5.1</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/regional-chart-1.png" alt="Regional chart"><div class="figcaption">Regional chart</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_7-washington-county-is-utahs-fastest-growing-region">7. Washington County is Utah’s fastest-growing region<a class="anchor" aria-label="anchor" href="#id_7-washington-county-is-utahs-fastest-growing-region"></a>
+</h3>
+<p>The St. George area (Washington County School District) has exploded with growth as retirees and remote workers flock to southern Utah.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">washington</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_district</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span>,</span>
+<span>         <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"Washington"</span>, <span class="va">district_name</span>, ignore.case <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">end_year</span>, <span class="va">district_name</span>, <span class="va">n_students</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>change <span class="op">=</span> <span class="va">n_students</span> <span class="op">-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lag</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span>,</span>
+<span>         pct_change <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">change</span> <span class="op">/</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lag</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">washington</span></span>
+<span><span class="co">#&gt; # A tibble: 14 x 5</span></span>
+<span><span class="co">#&gt;    end_year district_name      n_students change pct_change</span></span>
+<span><span class="co">#&gt;       &lt;dbl&gt; &lt;chr&gt;                   &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1     2019 Washington District     31074     NA       NA</span></span>
+<span><span class="co">#&gt;  2     2020 Washington District     33884   2810        9</span></span>
+<span><span class="co">#&gt;  3     2021 Washington District     35346   1462        4.3</span></span>
+<span><span class="co">#&gt;  4     2022 Washington District     36453   1107        3.1</span></span>
+<span><span class="co">#&gt;  5     2023 Washington District     36623    170        0.5</span></span>
+<span><span class="co">#&gt;  6     2024 Washington District     36753    130        0.4</span></span>
+<span><span class="co">#&gt;  7     2025 Washington District     36006   -747       -2</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/washington-chart-1.png" alt="Washington County"><div class="figcaption">Washington County</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_8-charter-schools-serve-a-growing-share-of-utah-students">8. Charter schools serve a growing share of Utah students<a class="anchor" aria-label="anchor" href="#id_8-charter-schools-serve-a-growing-share-of-utah-students"></a>
+</h3>
+<p>Utah has a robust charter school sector, with nearly 25% of public school students attending charter schools–one of the highest rates in the nation.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">state_total</span> <span class="op">&lt;-</span> <span class="va">enr_latest</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">charter_total</span> <span class="op">&lt;-</span> <span class="va">enr_latest</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_charter</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>charter_total <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">n_students</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">charter_total</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">charter_summary</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
+<span>  sector <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"All Public Schools"</span>, <span class="st">"Charter Schools"</span><span class="op">)</span>,</span>
+<span>  enrollment <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">state_total</span>, <span class="va">charter_total</span><span class="op">)</span>,</span>
+<span>  pct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">charter_total</span> <span class="op">/</span> <span class="va">state_total</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">charter_summary</span></span>
+<span><span class="co">#&gt; # A tibble: 2 x 3</span></span>
+<span><span class="co">#&gt;   sector             enrollment   pct</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;                   &lt;dbl&gt; &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1 All Public Schools     667789 100</span></span>
+<span><span class="co">#&gt; 2 Charter Schools        163710  24.5</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/charters-chart-1.png" alt="Charters"><div class="figcaption">Charters</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_9-kindergarten-enrollment-dipped-during-covid-but-recovered">9. Kindergarten enrollment dipped during COVID but recovered<a class="anchor" aria-label="anchor" href="#id_9-kindergarten-enrollment-dipped-during-covid-but-recovered"></a>
+</h3>
+<p>Unlike many states, Utah saw kindergarten enrollment bounce back relatively quickly after COVID disruptions, though it has since declined further.</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">covid_grades</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>,</span>
+<span>         <span class="va">grade_level</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"K"</span>, <span class="st">"01"</span>, <span class="st">"05"</span>, <span class="st">"09"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">end_year</span>, <span class="va">grade_level</span>, <span class="va">n_students</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_wider.html" class="external-link">pivot_wider</a></span><span class="op">(</span>names_from <span class="op">=</span> <span class="va">grade_level</span>, values_from <span class="op">=</span> <span class="va">n_students</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">covid_grades</span></span>
+<span><span class="co">#&gt; # A tibble: 12 x 5</span></span>
+<span><span class="co">#&gt;    end_year     K   `01`   `05`   `09`</span></span>
+<span><span class="co">#&gt;       &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1     2014 50363  51424  48499  45721</span></span>
+<span><span class="co">#&gt;  2     2015 48859  51431  49181  46699</span></span>
+<span><span class="co">#&gt;  3     2016 48327  50322  49563  47616</span></span>
+<span><span class="co">#&gt;  4     2017 48242  49981  51455  48522</span></span>
+<span><span class="co">#&gt;  5     2018 47605  49812  53389  50125</span></span>
+<span><span class="co">#&gt;  6     2019 49081  49081  53465  51044</span></span>
+<span><span class="co">#&gt;  7     2020 48789  50699  52766  51908</span></span>
+<span><span class="co">#&gt;  8     2021 46874  49242  51542  53340</span></span>
+<span><span class="co">#&gt;  9     2022 48744  49624  51764  55245</span></span>
+<span><span class="co">#&gt; 10     2023 46655  50346  50921  55330</span></span>
+<span><span class="co">#&gt; 11     2024 45217  48138  52547  54351</span></span>
+<span><span class="co">#&gt; 12     2025 44776  46313  51677  53658</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/covid-chart-1.png" alt="COVID grades"><div class="figcaption">COVID grades</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_10-high-school-enrollment-is-surging">10. High school enrollment is surging<a class="anchor" aria-label="anchor" href="#id_10-high-school-enrollment-is-surging"></a>
+</h3>
+<p>As larger elementary cohorts from the 2010s move through the system, Utah high schools are seeing significant enrollment growth–up 25% since 2014.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">hs_trend</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>,</span>
+<span>         <span class="va">grade_level</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"09"</span>, <span class="st">"10"</span>, <span class="st">"11"</span>, <span class="st">"12"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">end_year</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarize</a></span><span class="op">(</span>hs_total <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">n_students</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, .groups <span class="op">=</span> <span class="st">"drop"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>change <span class="op">=</span> <span class="va">hs_total</span> <span class="op">-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lag</a></span><span class="op">(</span><span class="va">hs_total</span><span class="op">)</span>,</span>
+<span>         pct_change <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">change</span> <span class="op">/</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lag</a></span><span class="op">(</span><span class="va">hs_total</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">hs_trend</span></span>
+<span><span class="co">#&gt; # A tibble: 12 x 4</span></span>
+<span><span class="co">#&gt;    end_year hs_total change pct_change</span></span>
+<span><span class="co">#&gt;       &lt;dbl&gt;    &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1     2014   173049     NA       NA</span></span>
+<span><span class="co">#&gt;  2     2015   178071   5022        2.9</span></span>
+<span><span class="co">#&gt;  3     2016   183492   5421        3</span></span>
+<span><span class="co">#&gt;  4     2017   187727   4235        2.3</span></span>
+<span><span class="co">#&gt;  5     2018   192340   4613        2.5</span></span>
+<span><span class="co">#&gt;  6     2019   196008   3668        1.9</span></span>
+<span><span class="co">#&gt;  7     2020   200437   4429        2.3</span></span>
+<span><span class="co">#&gt;  8     2021   205808   5371        2.7</span></span>
+<span><span class="co">#&gt;  9     2022   210817   5009        2.4</span></span>
+<span><span class="co">#&gt; 10     2023   214148   3331        1.6</span></span>
+<span><span class="co">#&gt; 11     2024   216094   1946        0.9</span></span>
+<span><span class="co">#&gt; 12     2025   216526    432        0.2</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/high-school-chart-1.png" alt="High school"><div class="figcaption">High school</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_11-hispanic-enrollment-grew-46-since-2014">11. Hispanic enrollment grew 46% since 2014<a class="anchor" aria-label="anchor" href="#id_11-hispanic-enrollment-grew-46-since-2014"></a>
+</h3>
+<p>Utah’s Hispanic student population has grown significantly faster than overall enrollment, adding nearly 45,000 students in just over a decade.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">hispanic</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"hispanic"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">end_year</span>, <span class="va">n_students</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>change <span class="op">=</span> <span class="va">n_students</span> <span class="op">-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lag</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span>,</span>
+<span>         pct_change <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">change</span> <span class="op">/</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lag</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">hispanic</span></span>
+<span><span class="co">#&gt; # A tibble: 12 x 4</span></span>
+<span><span class="co">#&gt;    end_year n_students change pct_change</span></span>
+<span><span class="co">#&gt;       &lt;dbl&gt;      &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1     2014      97388     NA       NA</span></span>
+<span><span class="co">#&gt;  2     2015     101390   4002        4.1</span></span>
+<span><span class="co">#&gt;  3     2016     104457   3067        3</span></span>
+<span><span class="co">#&gt;  4     2017     108074   3617        3.5</span></span>
+<span><span class="co">#&gt;  5     2018     110931   2857        2.6</span></span>
+<span><span class="co">#&gt;  6     2019     113945   3014        2.7</span></span>
+<span><span class="co">#&gt;  7     2020     117486   3541        3.1</span></span>
+<span><span class="co">#&gt;  8     2021     119393   1907        1.6</span></span>
+<span><span class="co">#&gt;  9     2022     126467   7074        5.9</span></span>
+<span><span class="co">#&gt; 10     2023     131954   5487        4.3</span></span>
+<span><span class="co">#&gt; 11     2024     132110    156        0.1</span></span>
+<span><span class="co">#&gt; 12     2025     142267  10157        7.7</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/hispanic-chart-1.png" alt="Hispanic growth"><div class="figcaption">Hispanic growth</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_12-english-learner-population-nearly-doubled">12. English learner population nearly doubled<a class="anchor" aria-label="anchor" href="#id_12-english-learner-population-nearly-doubled"></a>
+</h3>
+<p>The number of English learners (ELL/LEP) in Utah schools has grown from 34,000 to over 61,000 since 2014–an 79% increase.</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">ell_trend</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"lep"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">end_year</span>, <span class="va">n_students</span>, <span class="va">pct</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>pct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pct</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span>,</span>
+<span>         change <span class="op">=</span> <span class="va">n_students</span> <span class="op">-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lag</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span>,</span>
+<span>         pct_change <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">change</span> <span class="op">/</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lag</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">ell_trend</span></span>
+<span><span class="co">#&gt; # A tibble: 12 x 5</span></span>
+<span><span class="co">#&gt;    end_year n_students   pct change pct_change</span></span>
+<span><span class="co">#&gt;       &lt;dbl&gt;      &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1     2014      34394   5.6     NA       NA</span></span>
+<span><span class="co">#&gt;  2     2015      37033   6       2639      7.7</span></span>
+<span><span class="co">#&gt;  3     2016      38414   6.1     1381      3.7</span></span>
+<span><span class="co">#&gt;  4     2017      39662   6.2     1248      3.2</span></span>
+<span><span class="co">#&gt;  5     2018      43763   6.7     4101     10.3</span></span>
+<span><span class="co">#&gt;  6     2019      49374   7.5     5611     12.8</span></span>
+<span><span class="co">#&gt;  7     2020      53234   8       3860      7.8</span></span>
+<span><span class="co">#&gt;  8     2021      52788   7.9     -446     -0.8</span></span>
+<span><span class="co">#&gt;  9     2022      55546   8.2     2758      5.2</span></span>
+<span><span class="co">#&gt; 10     2023      59176   8.8     3630      6.5</span></span>
+<span><span class="co">#&gt; 11     2024      59147   8.8      -29      0</span></span>
+<span><span class="co">#&gt; 12     2025      61481   9.2     2334      3.9</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/ell-chart-1.png" alt="ELL growth"><div class="figcaption">ELL growth</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_13-nearly-1-in-3-students-are-economically-disadvantaged">13. Nearly 1 in 3 students are economically disadvantaged<a class="anchor" aria-label="anchor" href="#id_13-nearly-1-in-3-students-are-economically-disadvantaged"></a>
+</h3>
+<p>About 29% of Utah students qualify as economically disadvantaged–lower than the national average but still representing nearly 194,000 students.</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">special_pops</span> <span class="op">&lt;-</span> <span class="va">enr_latest</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span>,</span>
+<span>         <span class="va">subgroup</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"econ_disadv"</span>, <span class="st">"lep"</span>, <span class="st">"special_ed"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>pct <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">pct</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">subgroup</span>, <span class="va">n_students</span>, <span class="va">pct</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">special_pops</span></span>
+<span><span class="co">#&gt; # A tibble: 3 x 3</span></span>
+<span><span class="co">#&gt;   subgroup    n_students   pct</span></span>
+<span><span class="co">#&gt;   &lt;chr&gt;            &lt;dbl&gt; &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1 econ_disadv     193572  29</span></span>
+<span><span class="co">#&gt; 2 special_ed       88462  13.2</span></span>
+<span><span class="co">#&gt; 3 lep              61481   9.2</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/special-pops-chart-1.png" alt="Special populations"><div class="figcaption">Special populations</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_14-elementary-enrollment-is-declining-while-high-school-grows">14. Elementary enrollment is declining while high school grows<a class="anchor" aria-label="anchor" href="#id_14-elementary-enrollment-is-declining-while-high-school-grows"></a>
+</h3>
+<p>Utah kindergarten enrollment dropped 11% since its 2014 peak, even as high school grades are at record levels. This points to future enrollment declines.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">grades</span> <span class="op">&lt;-</span> <span class="va">enr_latest</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_state</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="op">!</span><span class="va">grade_level</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"TOTAL"</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">grade_level</span>, <span class="va">n_students</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/arrange.html" class="external-link">arrange</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/desc.html" class="external-link">desc</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">grades</span></span>
+<span><span class="co">#&gt; # A tibble: 14 x 2</span></span>
+<span><span class="co">#&gt;    grade_level n_students</span></span>
+<span><span class="co">#&gt;    &lt;chr&gt;            &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt;  1 11               54834</span></span>
+<span><span class="co">#&gt;  2 10               54609</span></span>
+<span><span class="co">#&gt;  3 09               53658</span></span>
+<span><span class="co">#&gt;  4 12               53425</span></span>
+<span><span class="co">#&gt;  5 08               53017</span></span>
+<span><span class="co">#&gt;  6 06               52775</span></span>
+<span><span class="co">#&gt;  7 07               51808</span></span>
+<span><span class="co">#&gt;  8 05               51677</span></span>
+<span><span class="co">#&gt;  9 04               51285</span></span>
+<span><span class="co">#&gt; 10 03               51101</span></span>
+<span><span class="co">#&gt; 11 02               48511</span></span>
+<span><span class="co">#&gt; 12 01               46313</span></span>
+<span><span class="co">#&gt; 13 K                44776</span></span>
+<span><span class="co">#&gt; 14 PK               16008</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/grade-distribution-chart-1.png" alt="Grade distribution"><div class="figcaption">Grade distribution</div>
+</div>
+<hr>
+</div>
+<div class="section level3">
+<h3 id="id_15-salt-lake-city-district-lost-17-of-students-since-2019">15. Salt Lake City district lost 17% of students since 2019<a class="anchor" aria-label="anchor" href="#id_15-salt-lake-city-district-lost-17-of-students-since-2019"></a>
+</h3>
+<p>While suburban districts boom, Salt Lake City School District has declined from over 22,000 to under 19,000 students–a loss driven by housing costs and demographic shifts in the urban core.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">salt_lake</span> <span class="op">&lt;-</span> <span class="va">enr</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">is_district</span>, <span class="va">subgroup</span> <span class="op">==</span> <span class="st">"total_enrollment"</span>, <span class="va">grade_level</span> <span class="op">==</span> <span class="st">"TOTAL"</span>,</span>
+<span>         <span class="va">district_name</span> <span class="op">==</span> <span class="st">"Salt Lake District"</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">end_year</span>, <span class="va">district_name</span>, <span class="va">n_students</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>change <span class="op">=</span> <span class="va">n_students</span> <span class="op">-</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lag</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span>,</span>
+<span>         pct_change <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">change</span> <span class="op">/</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/lead-lag.html" class="external-link">lag</a></span><span class="op">(</span><span class="va">n_students</span><span class="op">)</span> <span class="op">*</span> <span class="fl">100</span>, <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">salt_lake</span></span>
+<span><span class="co">#&gt; # A tibble: 7 x 5</span></span>
+<span><span class="co">#&gt;   end_year district_name      n_students change pct_change</span></span>
+<span><span class="co">#&gt;      &lt;dbl&gt; &lt;chr&gt;                   &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1     2019 Salt Lake District      22401     NA       NA</span></span>
+<span><span class="co">#&gt; 2     2020 Salt Lake District      22017   -384       -1.7</span></span>
+<span><span class="co">#&gt; 3     2021 Salt Lake District      20536  -1481       -6.7</span></span>
+<span><span class="co">#&gt; 4     2022 Salt Lake District      19833   -703       -3.4</span></span>
+<span><span class="co">#&gt; 5     2023 Salt Lake District      19449   -384       -1.9</span></span>
+<span><span class="co">#&gt; 6     2024 Salt Lake District      18966   -483       -2.5</span></span>
+<span><span class="co">#&gt; 7     2025 Salt Lake District      18535   -431       -2.3</span></span></code></pre></div>
+<div class="float">
+<img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/salt-lake-chart-1.png" alt="Salt Lake decline"><div class="figcaption">Salt Lake decline</div>
+</div>
+<hr>
+</div>
+</div>
+<div class="section level2">
+<h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
+</h2>
+<p>Utah’s school enrollment data reveals:</p>
+<ul>
+<li>
+<strong>Continued growth</strong>: Unlike many states, Utah continues to add students overall</li>
+<li>
+<strong>Wasatch Front dominance</strong>: The Salt Lake-Provo corridor holds most students</li>
+<li>
+<strong>Southern boom</strong>: Washington County (St. George) is the fastest-growing region</li>
+<li>
+<strong>Rural challenges</strong>: Eastern Utah districts losing students to urban areas</li>
+<li>
+<strong>Diversifying demographics</strong>: Hispanic and Pacific Islander populations growing</li>
+<li>
+<strong>Charter expansion</strong>: Charter schools serve nearly 25% of students</li>
+<li>
+<strong>Grade-level shift</strong>: Elementary declining while high school grows</li>
+</ul>
+<p>These patterns reflect Utah’s unique demographics–the youngest state in the nation–and rapid population growth along the Wasatch Front and in southwestern Utah.</p>
+<hr>
+</div>
+<div class="section level2">
+<h2 id="data-notes">Data Notes<a class="anchor" aria-label="anchor" href="#data-notes"></a>
+</h2>
+<div class="section level3">
+<h3 id="data-source">Data Source<a class="anchor" aria-label="anchor" href="#data-source"></a>
+</h3>
+<p>Data is downloaded from the Utah State Board of Education (USBE) Data and Statistics portal:</p>
+<ul>
+<li>
+<strong>Primary URL</strong>: <a href="https://schools.utah.gov/datastatistics/reports" class="external-link uri">https://schools.utah.gov/datastatistics/reports</a>
+</li>
+<li>
+<strong>File Pattern</strong>: <code>{YEAR}FallEnrollmentGradeLevelDemographics.xlsx</code>
+</li>
+<li>
+<strong>Collection Date</strong>: October 1 of each school year (Fall Enrollment count)</li>
+</ul>
+</div>
 <div class="section level3">
 <h3 id="years-available">Years Available<a class="anchor" aria-label="anchor" href="#years-available"></a>
 </h3>
@@ -134,21 +650,6 @@
 </tr></tbody>
 </table>
 <p><strong>Earliest available year</strong>: 2014 <strong>Most recent available year</strong>: 2026 <strong>Total years of data</strong>: 13 years</p>
-</div>
-<div class="section level3">
-<h3 id="data-source">Data Source<a class="anchor" aria-label="anchor" href="#data-source"></a>
-</h3>
-<p>Data is downloaded from the Utah State Board of Education (USBE) Data and Statistics portal:</p>
-<ul>
-<li>
-<strong>Primary URL</strong>: <a href="https://schools.utah.gov/datastatistics/reports" class="external-link uri">https://schools.utah.gov/datastatistics/reports</a>
-</li>
-<li>
-<strong>File Pattern</strong>: <code>{YEAR}FallEnrollmentGradeLevelDemographics.xlsx</code>
-</li>
-<li>
-<strong>Collection Date</strong>: October 1 of each school year (Fall Enrollment count)</li>
-</ul>
 </div>
 <div class="section level3">
 <h3 id="aggregation-levels">Aggregation Levels<a class="anchor" aria-label="anchor" href="#aggregation-levels"></a>
@@ -195,34 +696,6 @@
 </table>
 </div>
 <div class="section level3">
-<h3 id="identifier-system">Identifier System<a class="anchor" aria-label="anchor" href="#identifier-system"></a>
-</h3>
-<table class="table">
-<colgroup>
-<col width="35%">
-<col width="38%">
-<col width="26%">
-</colgroup>
-<thead><tr class="header">
-<th>Identifier</th>
-<th>Description</th>
-<th>Example</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>LEA/District ID</td>
-<td>Local Education Agency number</td>
-<td>Numeric ID assigned by USBE</td>
-</tr>
-<tr class="even">
-<td>School ID</td>
-<td>Individual school number</td>
-<td>Unique within the state</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="section level3">
 <h3 id="known-caveats">Known Caveats<a class="anchor" aria-label="anchor" href="#known-caveats"></a>
 </h3>
 <ol style="list-style-type: decimal">
@@ -234,87 +707,13 @@
 <strong>Historical Changes</strong>: District boundaries and school configurations may change year to year</li>
 <li>
 <strong>October 1 Count</strong>: All enrollment figures represent the official October 1 count date</li>
-<li>
-<strong>Pre-2018 Data</strong>: Detailed enrollment data prior to 2018 is not available through this package; historical summary data may be available through the Superintendent’s Annual Report</li>
 </ol>
+<hr>
 </div>
 </div>
 <div class="section level2">
 <h2 id="output-schema">Output Schema<a class="anchor" aria-label="anchor" href="#output-schema"></a>
 </h2>
-<div class="section level3">
-<h3 id="wide-format-tidy--false">Wide Format (<code>tidy = FALSE</code>)<a class="anchor" aria-label="anchor" href="#wide-format-tidy--false"></a>
-</h3>
-<table class="table">
-<colgroup>
-<col width="29%">
-<col width="22%">
-<col width="48%">
-</colgroup>
-<thead><tr class="header">
-<th>Column</th>
-<th>Type</th>
-<th>Description</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>end_year</td>
-<td>integer</td>
-<td>School year end (2024 = 2023-24 school year)</td>
-</tr>
-<tr class="even">
-<td>type</td>
-<td>character</td>
-<td>“State”, “District”, or “Campus”</td>
-</tr>
-<tr class="odd">
-<td>district_id</td>
-<td>character</td>
-<td>LEA identifier</td>
-</tr>
-<tr class="even">
-<td>campus_id</td>
-<td>character</td>
-<td>School identifier</td>
-</tr>
-<tr class="odd">
-<td>district_name</td>
-<td>character</td>
-<td>LEA name</td>
-</tr>
-<tr class="even">
-<td>campus_name</td>
-<td>character</td>
-<td>School name</td>
-</tr>
-<tr class="odd">
-<td>row_total</td>
-<td>integer</td>
-<td>Total enrollment</td>
-</tr>
-<tr class="even">
-<td>white, black, hispanic, asian, native_american, pacific_islander, multiracial</td>
-<td>integer</td>
-<td>Race/ethnicity counts</td>
-</tr>
-<tr class="odd">
-<td>male, female</td>
-<td>integer</td>
-<td>Gender counts</td>
-</tr>
-<tr class="even">
-<td>econ_disadv, lep, special_ed</td>
-<td>integer</td>
-<td>Special population counts</td>
-</tr>
-<tr class="odd">
-<td>grade_pk, grade_k, grade_01 - grade_12</td>
-<td>integer</td>
-<td>Grade-level enrollment</td>
-</tr>
-</tbody>
-</table>
-</div>
 <div class="section level3">
 <h3 id="tidy-format-tidy--true-default">Tidy Format (<code>tidy = TRUE</code>, default)<a class="anchor" aria-label="anchor" href="#tidy-format-tidy--true-default"></a>
 </h3>
@@ -398,12 +797,86 @@
 </tbody>
 </table>
 </div>
+<div class="section level3">
+<h3 id="wide-format-tidy--false">Wide Format (<code>tidy = FALSE</code>)<a class="anchor" aria-label="anchor" href="#wide-format-tidy--false"></a>
+</h3>
+<table class="table">
+<colgroup>
+<col width="29%">
+<col width="22%">
+<col width="48%">
+</colgroup>
+<thead><tr class="header">
+<th>Column</th>
+<th>Type</th>
+<th>Description</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>end_year</td>
+<td>integer</td>
+<td>School year end (2024 = 2023-24 school year)</td>
+</tr>
+<tr class="even">
+<td>type</td>
+<td>character</td>
+<td>“State”, “District”, or “Campus”</td>
+</tr>
+<tr class="odd">
+<td>district_id</td>
+<td>character</td>
+<td>LEA identifier</td>
+</tr>
+<tr class="even">
+<td>campus_id</td>
+<td>character</td>
+<td>School identifier</td>
+</tr>
+<tr class="odd">
+<td>district_name</td>
+<td>character</td>
+<td>LEA name</td>
+</tr>
+<tr class="even">
+<td>campus_name</td>
+<td>character</td>
+<td>School name</td>
+</tr>
+<tr class="odd">
+<td>row_total</td>
+<td>integer</td>
+<td>Total enrollment</td>
+</tr>
+<tr class="even">
+<td>white, black, hispanic, asian, native_american, pacific_islander, multiracial</td>
+<td>integer</td>
+<td>Race/ethnicity counts</td>
+</tr>
+<tr class="odd">
+<td>male, female</td>
+<td>integer</td>
+<td>Gender counts</td>
+</tr>
+<tr class="even">
+<td>econ_disadv, lep, special_ed</td>
+<td>integer</td>
+<td>Special population counts</td>
+</tr>
+<tr class="odd">
+<td>grade_pk, grade_k, grade_01 - grade_12</td>
+<td>integer</td>
+<td>Grade-level enrollment</td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
 </div>
 <div class="section level2">
 <h2 id="caching">Caching<a class="anchor" aria-label="anchor" href="#caching"></a>
 </h2>
 <p>The package caches downloaded data locally to avoid repeated downloads:</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># View cache status</span></span>
 <span><span class="fu"><a href="reference/cache_status.html">cache_status</a></span><span class="op">(</span><span class="op">)</span></span>
 <span></span>
@@ -416,6 +889,7 @@
 <span><span class="co"># Force fresh download (ignore cache)</span></span>
 <span><span class="fu"><a href="reference/fetch_enr.html">fetch_enr</a></span><span class="op">(</span><span class="fl">2024</span>, use_cache <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
 <p>Cache location: <code>rappdirs::user_cache_dir("utschooldata")</code></p>
+<hr>
 </div>
 <div class="section level2">
 <h2 id="functions">Functions<a class="anchor" aria-label="anchor" href="#functions"></a>
@@ -441,20 +915,16 @@
 <li>
 <code>clear_cache(end_year, type)</code> - Clear cached data</li>
 </ul>
+<hr>
 </div>
-</div>
-<div class="section level2">
-<h2 id="enrollment-visualizations">Enrollment Visualizations<a class="anchor" aria-label="anchor" href="#enrollment-visualizations"></a>
-</h2>
-<p><img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/statewide-chart-1.png" alt="Utah statewide enrollment trends" width="600"></p>
-<p><img src="https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/top-districts-chart-1.png" alt="Top Utah districts" width="600"></p>
-<p>See the <a href="https://almartin82.github.io/utschooldata/articles/enrollment_hooks.html">full vignette</a> for more insights.</p>
 </div>
 <div class="section level2">
 <h2 id="part-of-the-state-schooldata-project">Part of the State Schooldata Project<a class="anchor" aria-label="anchor" href="#part-of-the-state-schooldata-project"></a>
 </h2>
 <p>A simple, consistent interface for accessing state-published school data in Python and R.</p>
 <p><strong>All 50 state packages:</strong> <a href="https://github.com/almartin82?tab=repositories&amp;q=schooldata" class="external-link">github.com/almartin82</a></p>
+<p><strong>Original package:</strong> <a href="https://github.com/almartin82/njschooldata" class="external-link">njschooldata</a> - New Jersey school data (the mothership)</p>
+<hr>
 </div>
 <div class="section level2">
 <h2 id="license">License<a class="anchor" aria-label="anchor" href="#license"></a>

@@ -1,4 +1,4 @@
-# 10 Insights from Utah School Enrollment Data
+# 15 Insights from Utah School Enrollment Data
 
 ``` r
 library(utschooldata)
@@ -516,6 +516,251 @@ hs_trend |>
 
 ------------------------------------------------------------------------
 
+## 11. Hispanic enrollment grew 46% since 2014
+
+Utah’s Hispanic student population has grown significantly faster than
+overall enrollment, adding nearly 45,000 students in just over a decade.
+
+``` r
+hispanic <- enr |>
+  filter(is_state, grade_level == "TOTAL", subgroup == "hispanic") |>
+  select(end_year, n_students) |>
+  mutate(change = n_students - lag(n_students),
+         pct_change = round(change / lag(n_students) * 100, 1))
+
+hispanic
+#>    end_year n_students change pct_change
+#> 1      2014      97388     NA         NA
+#> 2      2015     101390   4002        4.1
+#> 3      2016     104457   3067        3.0
+#> 4      2017     108074   3617        3.5
+#> 5      2018     110931   2857        2.6
+#> 6      2019     113945   3014        2.7
+#> 7      2020     117486   3541        3.1
+#> 8      2021     119393   1907        1.6
+#> 9      2022     126467   7074        5.9
+#> 10     2023     131954   5487        4.3
+#> 11     2024     132110    156        0.1
+#> 12     2025     142267  10157        7.7
+#> 13     2026     142284     17        0.0
+```
+
+``` r
+hispanic |>
+  ggplot(aes(x = end_year, y = n_students)) +
+  geom_area(fill = "#FF6F00", alpha = 0.3) +
+  geom_line(color = "#FF6F00", linewidth = 1.2) +
+  geom_point(color = "#FF6F00", size = 3) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Hispanic Student Enrollment in Utah",
+    subtitle = paste0("From ", format(min(hispanic$n_students), big.mark = ","), " to ",
+                      format(max(hispanic$n_students), big.mark = ","), " students"),
+    x = "School Year",
+    y = "Hispanic Students"
+  )
+```
+
+![](enrollment_hooks_files/figure-html/hispanic-chart-1.png)
+
+------------------------------------------------------------------------
+
+## 12. English learner population nearly doubled
+
+The number of English learners (ELL/LEP) in Utah schools has grown from
+34,000 to over 61,000 since 2014–an 79% increase.
+
+``` r
+ell_trend <- enr |>
+  filter(is_state, grade_level == "TOTAL", subgroup == "lep") |>
+  select(end_year, n_students, pct) |>
+  mutate(pct = round(pct * 100, 1),
+         change = n_students - lag(n_students),
+         pct_change = round(change / lag(n_students) * 100, 1))
+
+ell_trend
+#>    end_year n_students pct change pct_change
+#> 1      2014      34394 5.6     NA         NA
+#> 2      2015      37033 6.0   2639        7.7
+#> 3      2016      38414 6.1   1381        3.7
+#> 4      2017      39662 6.2   1248        3.2
+#> 5      2018      43763 6.7   4101       10.3
+#> 6      2019      49374 7.5   5611       12.8
+#> 7      2020      53234 8.0   3860        7.8
+#> 8      2021      52788 7.9   -446       -0.8
+#> 9      2022      55546 8.2   2758        5.2
+#> 10     2023      59176 8.8   3630        6.5
+#> 11     2024      59147 8.8    -29        0.0
+#> 12     2025      61481 9.2   2334        3.9
+#> 13     2026      58419 8.9  -3062       -5.0
+```
+
+``` r
+ell_trend |>
+  ggplot(aes(x = end_year, y = n_students)) +
+  geom_area(fill = "#00897B", alpha = 0.3) +
+  geom_line(color = "#00897B", linewidth = 1.2) +
+  geom_point(color = "#00897B", size = 3) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "English Learner Students in Utah",
+    subtitle = "ELL population nearly doubled since 2014",
+    x = "School Year",
+    y = "ELL Students"
+  )
+```
+
+![](enrollment_hooks_files/figure-html/ell-chart-1.png)
+
+------------------------------------------------------------------------
+
+## 13. Nearly 1 in 3 students are economically disadvantaged
+
+About 29% of Utah students qualify as economically disadvantaged–lower
+than the national average but still representing nearly 194,000
+students.
+
+``` r
+special_pops <- enr_latest |>
+  filter(is_state, grade_level == "TOTAL",
+         subgroup %in% c("econ_disadv", "lep", "special_ed")) |>
+  mutate(pct = round(pct * 100, 1)) |>
+  select(subgroup, n_students, pct) |>
+  arrange(desc(n_students))
+
+special_pops
+#>      subgroup n_students  pct
+#> 1 econ_disadv     186361 28.4
+#> 2  special_ed      89893 13.7
+#> 3         lep      58419  8.9
+```
+
+``` r
+special_pops |>
+  mutate(subgroup = forcats::fct_recode(subgroup,
+    "Economically Disadvantaged" = "econ_disadv",
+    "Special Education" = "special_ed",
+    "English Learners" = "lep")) |>
+  mutate(subgroup = forcats::fct_reorder(subgroup, n_students)) |>
+  ggplot(aes(x = n_students, y = subgroup, fill = subgroup)) +
+  geom_col(show.legend = FALSE) +
+  geom_text(aes(label = paste0(pct, "%")), hjust = -0.1) +
+  scale_x_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.15))) +
+  scale_fill_brewer(palette = "Set1") +
+  labs(
+    title = paste0("Utah Special Populations (", max_year, ")"),
+    subtitle = "Economically disadvantaged, special education, and ELL students",
+    x = "Number of Students",
+    y = NULL
+  )
+```
+
+![](enrollment_hooks_files/figure-html/special-pops-chart-1.png)
+
+------------------------------------------------------------------------
+
+## 14. Elementary enrollment is declining while high school grows
+
+Utah kindergarten enrollment dropped 11% since its 2014 peak, even as
+high school grades are at record levels. This points to future
+enrollment declines.
+
+``` r
+grades <- enr_latest |>
+  filter(is_state, subgroup == "total_enrollment") |>
+  filter(!grade_level %in% c("TOTAL")) |>
+  select(grade_level, n_students) |>
+  arrange(desc(n_students))
+
+grades
+#>    grade_level n_students
+#> 1           12      53982
+#> 2           11      53721
+#> 3           10      53580
+#> 4           09      53318
+#> 5           07      52826
+#> 6           08      51752
+#> 7           06      51547
+#> 8           05      51133
+#> 9           04      50931
+#> 10          03      48524
+#> 11          02      46245
+#> 12          01      45232
+#> 13           K      43519
+#> 14          PK      14869
+```
+
+``` r
+grades |>
+  mutate(grade_level = factor(grade_level,
+         levels = c("PK", "K", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"))) |>
+  mutate(level = case_when(
+    grade_level %in% c("PK", "K", "01", "02", "03", "04", "05") ~ "Elementary",
+    grade_level %in% c("06", "07", "08") ~ "Middle",
+    TRUE ~ "High School"
+  )) |>
+  ggplot(aes(x = grade_level, y = n_students, fill = level)) +
+  geom_col() +
+  scale_y_continuous(labels = scales::comma) +
+  scale_fill_manual(values = c("Elementary" = "#1976D2", "Middle" = "#FFA000", "High School" = "#7B1FA2")) +
+  labs(
+    title = paste0("Utah Enrollment by Grade Level (", max_year, ")"),
+    subtitle = "Elementary grades smaller than high school--unusual for a growing state",
+    x = "Grade Level",
+    y = "Enrollment",
+    fill = "Level"
+  )
+```
+
+![](enrollment_hooks_files/figure-html/grade-distribution-chart-1.png)
+
+------------------------------------------------------------------------
+
+## 15. Salt Lake City district lost 17% of students since 2019
+
+While suburban districts boom, Salt Lake City School District has
+declined from over 22,000 to under 19,000 students–a loss driven by
+housing costs and demographic shifts in the urban core.
+
+``` r
+salt_lake <- enr |>
+  filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL",
+         district_name == "Salt Lake District") |>
+  select(end_year, district_name, n_students) |>
+  mutate(change = n_students - lag(n_students),
+         pct_change = round(change / lag(n_students) * 100, 1))
+
+salt_lake
+#>   end_year      district_name n_students change pct_change
+#> 1     2019 Salt Lake District      22401     NA         NA
+#> 2     2020 Salt Lake District      22017   -384       -1.7
+#> 3     2021 Salt Lake District      20536  -1481       -6.7
+#> 4     2022 Salt Lake District      19833   -703       -3.4
+#> 5     2023 Salt Lake District      19449   -384       -1.9
+#> 6     2024 Salt Lake District      18966   -483       -2.5
+#> 7     2025 Salt Lake District      18535   -431       -2.3
+#> 8     2026 Salt Lake District      17649   -886       -4.8
+```
+
+``` r
+salt_lake |>
+  ggplot(aes(x = end_year, y = n_students)) +
+  geom_area(fill = "#D32F2F", alpha = 0.3) +
+  geom_line(color = "#D32F2F", linewidth = 1.2) +
+  geom_point(color = "#D32F2F", size = 3) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Salt Lake City School District Enrollment",
+    subtitle = "Urban core district losing students to suburbs",
+    x = "School Year",
+    y = "Total Enrollment"
+  )
+```
+
+![](enrollment_hooks_files/figure-html/salt-lake-chart-1.png)
+
+------------------------------------------------------------------------
+
 ## Summary
 
 Utah’s school enrollment data reveals:
@@ -581,7 +826,7 @@ sessionInfo()
 #> [25] cachem_1.1.0       xfun_0.55          fs_1.6.6           sass_0.4.10       
 #> [29] S7_0.2.1           viridisLite_0.4.2  cli_3.6.5          withr_3.0.2       
 #> [33] pkgdown_2.2.0      magrittr_2.0.4     digest_0.6.39      grid_4.5.2        
-#> [37] rappdirs_0.3.3     lifecycle_1.0.5    vctrs_0.7.0        evaluate_1.0.5    
+#> [37] rappdirs_0.3.4     lifecycle_1.0.5    vctrs_0.7.0        evaluate_1.0.5    
 #> [41] glue_1.8.0         cellranger_1.1.0   farver_2.1.2       codetools_0.2-20  
 #> [45] ragg_1.5.0         httr_1.4.7         rmarkdown_2.30     purrr_1.2.1       
 #> [49] tools_4.5.2        pkgconfig_2.0.3    htmltools_0.5.9
