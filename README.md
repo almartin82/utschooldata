@@ -212,14 +212,16 @@ utah_county <- enr |>
   filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL",
          grepl("Alpine|Provo|Nebo", district_name, ignore.case = TRUE)) |>
   group_by(district_name) |>
+  arrange(end_year) |>
   summarize(
-    first_year = n_students[end_year == min_year],
-    last_year = n_students[end_year == max_year],
+    first_year = first(n_students),
+    last_year = last(n_students),
     pct_change = round((last_year / first_year - 1) * 100, 1),
     .groups = "drop"
   ) |>
   arrange(desc(pct_change))
 
+stopifnot(nrow(utah_county) > 0)
 utah_county
 #> # A tibble: 3 x 4
 #>   district_name   first_year last_year pct_change
@@ -243,14 +245,16 @@ rural <- enr |>
          grepl("Carbon|Emery|Grand|San Juan|Millard", district_name, ignore.case = TRUE)) |>
   group_by(district_name) |>
   filter(n() >= 5) |>
+  arrange(end_year) |>
   summarize(
-    first_year = n_students[end_year == min_year],
-    last_year = n_students[end_year == max_year],
+    first_year = first(n_students),
+    last_year = last(n_students),
     pct_change = round((last_year / first_year - 1) * 100, 1),
     .groups = "drop"
   ) |>
   arrange(pct_change)
 
+stopifnot(nrow(rural) > 0)
 rural
 #> # A tibble: 5 x 4
 #>   district_name     first_year last_year pct_change
