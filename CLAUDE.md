@@ -87,6 +87,27 @@ If CI fails, fix the issue and push - auto-merge triggers when checks pass.
 
 ---
 
+## Valid Filter Values (tidy enrollment via `fetch_enr(tidy = TRUE)`)
+
+### subgroup
+`total_enrollment`, `white`, `black`, `hispanic`, `asian`, `native_american`, `pacific_islander`, `multiracial`, `male`, `female`, `special_ed`, `lep`, `econ_disadv`
+
+**NOT in tidy enrollment:** All subgroups are conditional on their presence in the raw data. Utah USBE data includes demographic, gender, and special population columns.
+
+### grade_level
+`PK`, `K`, `01`-`12`, `TOTAL`
+
+Grade aggregates from `enr_grade_aggs()`: `K8`, `HS`, `K12`
+
+**Note:** Raw data uses various grade naming patterns (e.g., `Preschool`, `Pre_K`, `PreK`, `Kindergarten`, `Grade_1`, `G1`). These are all normalized to `PK`, `K`, `01`-`12` in tidy output. Always filter on the normalized values.
+
+### entity flags
+`is_state`, `is_district`, `is_campus`, `is_charter`
+
+Determined by the `type` column: `"State"`, `"District"`, `"Campus"`. Charter status via `charter_flag` column.
+
+---
+
 ## README Images from Vignettes (REQUIRED)
 
 **NEVER use `man/figures/` or `generate_readme_figs.R` for README images.**
