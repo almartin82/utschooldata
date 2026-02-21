@@ -219,18 +219,23 @@ utah_county <- enr |>
   filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL",
          grepl("Alpine|Provo|Nebo", district_name, ignore.case = TRUE)) |>
   group_by(district_name) |>
+  arrange(end_year) |>
   summarize(
-    first_year = n_students[end_year == min_year],
-    last_year = n_students[end_year == max_year],
+    first_year = first(n_students),
+    last_year = last(n_students),
     pct_change = round((last_year / first_year - 1) * 100, 1),
     .groups = "drop"
   ) |>
   arrange(desc(pct_change))
 
+stopifnot(nrow(utah_county) > 0)
 utah_county
-#> # A tibble: 0 × 4
-#> # ℹ 4 variables: district_name <chr>, first_year <dbl>, last_year <dbl>,
-#> #   pct_change <dbl>
+#> # A tibble: 3 × 4
+#>   district_name   first_year last_year pct_change
+#>   <chr>                <dbl>     <dbl>      <dbl>
+#> 1 Nebo District        33117     41675       25.8
+#> 2 Alpine District      79748     84215        5.6
+#> 3 Provo District       16165     13010      -19.5
 ```
 
 ``` r
@@ -266,18 +271,25 @@ rural <- enr |>
          grepl("Carbon|Emery|Grand|San Juan|Millard", district_name, ignore.case = TRUE)) |>
   group_by(district_name) |>
   filter(n() >= 5) |>
+  arrange(end_year) |>
   summarize(
-    first_year = n_students[end_year == min_year],
-    last_year = n_students[end_year == max_year],
+    first_year = first(n_students),
+    last_year = last(n_students),
     pct_change = round((last_year / first_year - 1) * 100, 1),
     .groups = "drop"
   ) |>
   arrange(pct_change)
 
+stopifnot(nrow(rural) > 0)
 rural
-#> # A tibble: 0 × 4
-#> # ℹ 4 variables: district_name <chr>, first_year <dbl>, last_year <dbl>,
-#> #   pct_change <dbl>
+#> # A tibble: 5 × 4
+#>   district_name     first_year last_year pct_change
+#>   <chr>                  <dbl>     <dbl>      <dbl>
+#> 1 Emery District          2181      1907      -12.6
+#> 2 Carbon District         3484      3135      -10  
+#> 3 Grand District          1520      1376       -9.5
+#> 4 San Juan District       2876      2725       -5.3
+#> 5 Millard District        2916      2997        2.8
 ```
 
 ``` r
@@ -814,7 +826,7 @@ sessionInfo()
 #> [1] stats     graphics  grDevices utils     datasets  methods   base     
 #> 
 #> other attached packages:
-#> [1] ggplot2_4.0.1      tidyr_1.3.2        dplyr_1.1.4        utschooldata_0.1.0
+#> [1] ggplot2_4.0.2      tidyr_1.3.2        dplyr_1.2.0        utschooldata_0.1.0
 #> 
 #> loaded via a namespace (and not attached):
 #>  [1] gtable_0.3.6       jsonlite_2.0.0     compiler_4.5.2     tidyselect_1.2.1  
@@ -824,10 +836,10 @@ sessionInfo()
 #> [17] forcats_1.0.1      tibble_3.3.1       desc_1.4.3         bslib_0.10.0      
 #> [21] pillar_1.11.1      RColorBrewer_1.1-3 rlang_1.1.7        utf8_1.2.6        
 #> [25] cachem_1.1.0       xfun_0.56          fs_1.6.6           sass_0.4.10       
-#> [29] S7_0.2.1           viridisLite_0.4.2  cli_3.6.5          withr_3.0.2       
+#> [29] S7_0.2.1           viridisLite_0.4.3  cli_3.6.5          withr_3.0.2       
 #> [33] pkgdown_2.2.0      magrittr_2.0.4     digest_0.6.39      grid_4.5.2        
 #> [37] rappdirs_0.3.4     lifecycle_1.0.5    vctrs_0.7.1        evaluate_1.0.5    
 #> [41] glue_1.8.0         cellranger_1.1.0   farver_2.1.2       codetools_0.2-20  
-#> [45] ragg_1.5.0         httr_1.4.7         rmarkdown_2.30     purrr_1.2.1       
+#> [45] ragg_1.5.0         httr_1.4.8         rmarkdown_2.30     purrr_1.2.1       
 #> [49] tools_4.5.2        pkgconfig_2.0.3    htmltools_0.5.9
 ```
