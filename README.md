@@ -11,7 +11,7 @@ Fetch and analyze Utah school enrollment data from [USBE](https://schools.utah.g
 
 ## Why This Package?
 
-Utah is one of the fastest-growing states with the youngest population in America, yet school enrollment patterns defy simple narratives. While total enrollment grew 9% since 2014, kindergarten enrollment has dropped 11%. Suburban districts along the Wasatch Front are booming while Salt Lake City schools have lost 17% of students since 2019. Hispanic enrollment is up 46%, and the English learner population nearly doubled.
+Utah is one of the fastest-growing states with the youngest population in America, yet school enrollment patterns defy simple narratives. While total enrollment grew 7% since 2014, it has fallen three of the last four years. Kindergarten enrollment has dropped 14%. Suburban districts along the Wasatch Front are holding steady while Salt Lake City schools have lost 21% of students since 2019. Hispanic enrollment is up 46%, and the English learner population grew 70%.
 
 This package provides direct access to Utah State Board of Education enrollment data--no manual downloads, no web scraping fragility, just clean data ready for analysis.
 
@@ -26,8 +26,8 @@ devtools::install_github("almartin82/utschooldata")
 library(utschooldata)
 library(dplyr)
 
-# Get 2025 enrollment data
-enr <- fetch_enr(2025, use_cache = TRUE)
+# Get 2026 enrollment data
+enr <- fetch_enr(2026, use_cache = TRUE)
 
 # View state totals
 enr |>
@@ -36,7 +36,7 @@ enr |>
 #> # A tibble: 1 x 2
 #>   end_year n_students
 #>      <dbl>      <dbl>
-#> 1     2025     667789
+#> 1     2026     656310
 ```
 
 ## Python Quick Start
@@ -44,15 +44,15 @@ enr |>
 ```python
 import pyutschooldata as ut
 
-# Fetch 2025 data
-enr = ut.fetch_enr(2025)
+# Fetch 2026 data
+enr = ut.fetch_enr(2026)
 
 # Statewide total
 total = enr[(enr['is_state']) &
             (enr['grade_level'] == 'TOTAL') &
             (enr['subgroup'] == 'total_enrollment')]['n_students'].sum()
 print(f"{total:,} students")
-# 667,789 students
+# 656,310 students
 
 # Check available years
 years = ut.get_available_years()
@@ -64,9 +64,9 @@ print(f"Data available: {min(years)}-{max(years)}")
 
 ## 15 Insights from Utah School Enrollment Data
 
-### 1. Utah's enrollment continues to grow
+### 1. Utah grew 7% since 2014 but is now declining
 
-Utah has one of the youngest populations in the nation and continues to see steady enrollment growth, unlike many states that saw declines after COVID.
+Utah added over 44,000 students from 2014 to its 2022 peak, but enrollment has fallen three of the last four years, dropping below 660,000 in 2026.
 
 ```r
 library(utschooldata)
@@ -89,6 +89,7 @@ state_totals <- enr |>
   mutate(change = n_students - lag(n_students),
          pct_change = round(change / lag(n_students) * 100, 2))
 
+stopifnot(nrow(state_totals) > 0)
 state_totals
 #> # A tibble: 13 x 4
 #>    end_year n_students change pct_change
@@ -105,6 +106,7 @@ state_totals
 #> 10     2023     674650    299       0.04
 #> 11     2024     672662  -1988      -0.29
 #> 12     2025     667789  -4873      -0.72
+#> 13     2026     656310 -11479      -1.72
 ```
 
 ![Statewide enrollment](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/statewide-chart-1.png)
@@ -113,13 +115,16 @@ state_totals
 
 ### 2. Granite and Alpine are Utah's enrollment giants
 
-Utah's two largest districts--Granite and Alpine--each serve well over 57,000 students, but their trajectories differ. Salt Lake City has seen declines while suburban districts grow.
+Utah's two largest districts--Alpine and Granite--anchor the Wasatch Front, but their trajectories differ. Salt Lake District has seen steep declines while suburban districts hold steady.
 
 ```r
 large_districts <- enr |>
   filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL",
-         grepl("Granite|Alpine|Davis|Jordan|Canyons|Salt Lake City", district_name, ignore.case = TRUE)) |>
+         district_name %in% c("Granite District", "Alpine District", "Davis District",
+                              "Jordan District", "Canyons District", "Salt Lake District")) |>
   select(end_year, district_name, n_students)
+
+stopifnot(nrow(large_districts) > 0)
 
 large_districts |>
   filter(end_year == max(end_year)) |>
@@ -127,12 +132,12 @@ large_districts |>
 #> # A tibble: 6 x 3
 #>   end_year district_name      n_students
 #>      <dbl> <chr>                   <dbl>
-#> 1     2025 Alpine District         84757
-#> 2     2025 Davis District          69602
-#> 3     2025 Jordan District         57083
-#> 4     2025 Granite District        57038
-#> 5     2025 Canyons District        32289
-#> 6     2025 Salt Lake District      18535
+#> 1     2026 Alpine District         84215
+#> 2     2026 Davis District          67466
+#> 3     2026 Jordan District         55820
+#> 4     2026 Granite District        54467
+#> 5     2026 Canyons District        31499
+#> 6     2026 Salt Lake District      17649
 ```
 
 ![Top districts](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/top-districts-chart-1.png)
@@ -141,7 +146,7 @@ large_districts |>
 
 ### 3. Utah's student body is diversifying
 
-While Utah remains less diverse than national averages, Hispanic enrollment has grown substantially over the past decade, now representing 21% of students.
+While Utah remains less diverse than national averages, Hispanic enrollment has grown substantially over the past decade, now representing nearly 22% of students.
 
 ```r
 enr_latest <- fetch_enr(max_year, use_cache = TRUE)
@@ -153,17 +158,18 @@ demographics <- enr_latest |>
   select(subgroup, n_students, pct) |>
   arrange(desc(n_students))
 
+stopifnot(nrow(demographics) > 0)
 demographics
 #> # A tibble: 7 x 3
 #>   subgroup         n_students   pct
 #>   <chr>                 <dbl> <dbl>
-#> 1 white                463352  69.4
-#> 2 hispanic             142267  21.3
-#> 3 multiracial           25478   3.8
-#> 4 asian                 11184   1.7
-#> 5 pacific_islander      10844   1.6
-#> 6 black                  8827   1.3
-#> 7 native_american        5837   0.9
+#> 1 white                451812  68.8
+#> 2 hispanic             142284  21.7
+#> 3 multiracial           25385   3.9
+#> 4 asian                 11385   1.7
+#> 5 pacific_islander      10973   1.7
+#> 6 black                  8806   1.3
+#> 7 native_american        5665   0.9
 ```
 
 ![Demographics](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/demographics-chart-1.png)
@@ -183,29 +189,30 @@ pi_districts <- enr_latest |>
   arrange(desc(pct)) |>
   head(10)
 
+stopifnot(nrow(pi_districts) > 0)
 pi_districts
 #> # A tibble: 10 x 3
 #>    district_name                  n_students   pct
 #>    <chr>                               <dbl> <dbl>
-#>  1 Mana Academy Charter School           185 61.5
-#>  2 Wallace Stegner Academy               143  6.6
-#>  3 Salt Lake District                    919  4.96
-#>  4 Granite District                     2092  3.67
-#>  5 Provo District                        432  3.21
-#>  6 Logan City District                   135  2.67
-#>  7 Jordan District                      1272  2.23
-#>  8 Tooele District                       349  2.23
-#>  9 Alpine District                      1287  1.52
-#> 10 Davis District                       1025  1.47
+#>  1 Mana Academy Charter School           193 64.12
+#>  2 Wallace Stegner Academy               145  5.09
+#>  3 Salt Lake District                    886  5.02
+#>  4 Granite District                     2146  3.94
+#>  5 Logan City District                   160  3.15
+#>  6 Provo District                        388  2.98
+#>  7 Jordan District                      1275  2.28
+#>  8 Tooele District                       340  2.16
+#>  9 Alpine District                      1331  1.58
+#> 10 Davis District                       1023  1.52
 ```
 
 ![Pacific Islander](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/pacific-islander-chart-1.png)
 
 ---
 
-### 5. Utah County is the growth engine
+### 5. Nebo District is the Utah County growth leader
 
-Provo, Alpine, and Nebo districts in Utah County are seeing consistent growth as young families settle along the I-15 corridor south of Salt Lake.
+Provo, Alpine, and Nebo districts in Utah County show diverging paths since 2019. Nebo grew 26% while Provo lost nearly 20% of students as young families settle further south along the I-15 corridor.
 
 ```r
 utah_county <- enr |>
@@ -226,9 +233,9 @@ utah_county
 #> # A tibble: 3 x 4
 #>   district_name   first_year last_year pct_change
 #>   <chr>                <dbl>     <dbl>      <dbl>
-#> 1 Nebo District        33117     42946       29.7
-#> 2 Alpine District      79748     84757        6.3
-#> 3 Provo District       16165     13463      -16.7
+#> 1 Nebo District        33117     41675       25.8
+#> 2 Alpine District      79748     84215        5.6
+#> 3 Provo District       16165     13010      -19.5
 ```
 
 ![Growth chart](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/growth-chart-1.png)
@@ -259,11 +266,11 @@ rural
 #> # A tibble: 5 x 4
 #>   district_name     first_year last_year pct_change
 #>   <chr>                  <dbl>     <dbl>      <dbl>
-#> 1 Grand District          1520      1371       -9.8
-#> 2 Emery District          2181      1986       -8.9
-#> 3 Carbon District         3484      3186       -8.6
-#> 4 San Juan District       2876      2768       -3.8
-#> 5 Millard District        2916      3064        5.1
+#> 1 Emery District          2181      1907      -12.6
+#> 2 Carbon District         3484      3135      -10.0
+#> 3 Grand District          1520      1376       -9.5
+#> 4 San Juan District       2876      2725       -5.3
+#> 5 Millard District        2916      2997        2.8
 ```
 
 ![Regional chart](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/regional-chart-1.png)
@@ -272,36 +279,38 @@ rural
 
 ### 7. Washington County is Utah's fastest-growing region
 
-The St. George area (Washington County School District) has exploded with growth as retirees and remote workers flock to southern Utah.
+The St. George area (Washington County School District) has exploded with growth as retirees and remote workers flock to southern Utah, though growth has slowed since 2023.
 
 ```r
 washington <- enr |>
   filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL",
-         grepl("Washington", district_name, ignore.case = TRUE)) |>
+         district_name == "Washington District") |>
   select(end_year, district_name, n_students) |>
   mutate(change = n_students - lag(n_students),
          pct_change = round(change / lag(n_students) * 100, 1))
 
+stopifnot(nrow(washington) > 0)
 washington
-#> # A tibble: 14 x 5
-#>    end_year district_name      n_students change pct_change
-#>       <dbl> <chr>                   <dbl>  <dbl>      <dbl>
-#>  1     2019 Washington District     31074     NA       NA
-#>  2     2020 Washington District     33884   2810        9
-#>  3     2021 Washington District     35346   1462        4.3
-#>  4     2022 Washington District     36453   1107        3.1
-#>  5     2023 Washington District     36623    170        0.5
-#>  6     2024 Washington District     36753    130        0.4
-#>  7     2025 Washington District     36006   -747       -2
+#> # A tibble: 8 x 5
+#>   end_year district_name       n_students change pct_change
+#>      <dbl> <chr>                    <dbl>  <dbl>      <dbl>
+#> 1     2019 Washington District      31074     NA       NA
+#> 2     2020 Washington District      33884   2810        9.0
+#> 3     2021 Washington District      35346   1462        4.3
+#> 4     2022 Washington District      36453   1107        3.1
+#> 5     2023 Washington District      36623    170        0.5
+#> 6     2024 Washington District      36753    130        0.4
+#> 7     2025 Washington District      36006   -747       -2.0
+#> 8     2026 Washington District      34396  -1610       -4.5
 ```
 
 ![Washington County](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/washington-chart-1.png)
 
 ---
 
-### 8. Charter schools serve a growing share of Utah students
+### 8. Charter schools serve over a quarter of Utah students
 
-Utah has a robust charter school sector, with nearly 25% of public school students attending charter schools--one of the highest rates in the nation.
+Utah has a robust charter school sector, with over 26% of public school students attending charter schools--one of the highest rates in the nation.
 
 ```r
 state_total <- enr_latest |>
@@ -319,21 +328,22 @@ charter_summary <- tibble(
   pct = c(100, round(charter_total / state_total * 100, 1))
 )
 
+stopifnot(nrow(charter_summary) > 0)
 charter_summary
 #> # A tibble: 2 x 3
 #>   sector             enrollment   pct
 #>   <chr>                   <dbl> <dbl>
-#> 1 All Public Schools     667789 100
-#> 2 Charter Schools        163710  24.5
+#> 1 All Public Schools     656310 100
+#> 2 Charter Schools        170536  26
 ```
 
 ![Charters](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/charters-chart-1.png)
 
 ---
 
-### 9. Kindergarten enrollment dipped during COVID but recovered
+### 9. Kindergarten enrollment dipped during COVID and keeps falling
 
-Unlike many states, Utah saw kindergarten enrollment bounce back relatively quickly after COVID disruptions, though it has since declined further.
+Unlike many states that saw a COVID bounce-back, Utah kindergarten enrollment has continued to decline, dropping from 50,363 in 2014 to 43,519 in 2026.
 
 ```r
 covid_grades <- enr |>
@@ -342,31 +352,33 @@ covid_grades <- enr |>
   select(end_year, grade_level, n_students) |>
   pivot_wider(names_from = grade_level, values_from = n_students)
 
+stopifnot(nrow(covid_grades) > 0)
 covid_grades
-#> # A tibble: 12 x 5
-#>    end_year     K   `01`   `05`   `09`
-#>       <dbl> <dbl>  <dbl>  <dbl>  <dbl>
-#>  1     2014 50363  51424  48499  45721
-#>  2     2015 48859  51431  49181  46699
-#>  3     2016 48327  50322  49563  47616
-#>  4     2017 48242  49981  51455  48522
-#>  5     2018 47605  49812  53389  50125
-#>  6     2019 49081  49081  53465  51044
-#>  7     2020 48789  50699  52766  51908
-#>  8     2021 46874  49242  51542  53340
-#>  9     2022 48744  49624  51764  55245
-#> 10     2023 46655  50346  50921  55330
-#> 11     2024 45217  48138  52547  54351
-#> 12     2025 44776  46313  51677  53658
+#> # A tibble: 13 x 5
+#>    end_year     K    01    05    09
+#>       <dbl> <dbl> <dbl> <dbl> <dbl>
+#>  1     2014 50363 51424 48499 45721
+#>  2     2015 48859 51431 49181 46699
+#>  3     2016 48327 50322 49563 47616
+#>  4     2017 48242 49981 51455 48522
+#>  5     2018 47605 49812 53389 50125
+#>  6     2019 49081 49081 53465 51044
+#>  7     2020 48789 50699 52766 51908
+#>  8     2021 46874 49242 51542 53340
+#>  9     2022 48744 49624 51764 55245
+#> 10     2023 46655 50346 50921 55330
+#> 11     2024 45217 48138 52547 54351
+#> 12     2025 44776 46313 51677 53658
+#> 13     2026 43519 45232 51133 53318
 ```
 
 ![COVID grades](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/covid-chart-1.png)
 
 ---
 
-### 10. High school enrollment is surging
+### 10. High school enrollment surged 24% since 2014
 
-As larger elementary cohorts from the 2010s move through the system, Utah high schools are seeing significant enrollment growth--up 25% since 2014.
+As larger elementary cohorts from the 2010s moved through the system, Utah high schools saw significant enrollment growth--though 2026 marks the first decline.
 
 ```r
 hs_trend <- enr |>
@@ -377,13 +389,14 @@ hs_trend <- enr |>
   mutate(change = hs_total - lag(hs_total),
          pct_change = round(change / lag(hs_total) * 100, 1))
 
+stopifnot(nrow(hs_trend) > 0)
 hs_trend
-#> # A tibble: 12 x 4
+#> # A tibble: 13 x 4
 #>    end_year hs_total change pct_change
 #>       <dbl>    <dbl>  <dbl>      <dbl>
 #>  1     2014   173049     NA       NA
 #>  2     2015   178071   5022        2.9
-#>  3     2016   183492   5421        3
+#>  3     2016   183492   5421        3.0
 #>  4     2017   187727   4235        2.3
 #>  5     2018   192340   4613        2.5
 #>  6     2019   196008   3668        1.9
@@ -393,6 +406,7 @@ hs_trend
 #> 10     2023   214148   3331        1.6
 #> 11     2024   216094   1946        0.9
 #> 12     2025   216526    432        0.2
+#> 13     2026   214601  -1925       -0.9
 ```
 
 ![High school](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/high-school-chart-1.png)
@@ -410,13 +424,14 @@ hispanic <- enr |>
   mutate(change = n_students - lag(n_students),
          pct_change = round(change / lag(n_students) * 100, 1))
 
+stopifnot(nrow(hispanic) > 0)
 hispanic
-#> # A tibble: 12 x 4
+#> # A tibble: 13 x 4
 #>    end_year n_students change pct_change
 #>       <dbl>      <dbl>  <dbl>      <dbl>
 #>  1     2014      97388     NA       NA
 #>  2     2015     101390   4002        4.1
-#>  3     2016     104457   3067        3
+#>  3     2016     104457   3067        3.0
 #>  4     2017     108074   3617        3.5
 #>  5     2018     110931   2857        2.6
 #>  6     2019     113945   3014        2.7
@@ -426,15 +441,16 @@ hispanic
 #> 10     2023     131954   5487        4.3
 #> 11     2024     132110    156        0.1
 #> 12     2025     142267  10157        7.7
+#> 13     2026     142284     17        0.0
 ```
 
 ![Hispanic growth](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/hispanic-chart-1.png)
 
 ---
 
-### 12. English learner population nearly doubled
+### 12. English learner population grew 70% since 2014
 
-The number of English learners (ELL/LEP) in Utah schools has grown from 34,000 to over 61,000 since 2014--an 79% increase.
+The number of English learners (ELL/LEP) in Utah schools has grown from 34,000 to over 58,000 since 2014--a 70% increase that outpaces overall enrollment growth by nearly 10x.
 
 ```r
 ell_trend <- enr |>
@@ -444,22 +460,24 @@ ell_trend <- enr |>
          change = n_students - lag(n_students),
          pct_change = round(change / lag(n_students) * 100, 1))
 
+stopifnot(nrow(ell_trend) > 0)
 ell_trend
-#> # A tibble: 12 x 5
+#> # A tibble: 13 x 5
 #>    end_year n_students   pct change pct_change
 #>       <dbl>      <dbl> <dbl>  <dbl>      <dbl>
 #>  1     2014      34394   5.6     NA       NA
-#>  2     2015      37033   6       2639      7.7
-#>  3     2016      38414   6.1     1381      3.7
-#>  4     2017      39662   6.2     1248      3.2
-#>  5     2018      43763   6.7     4101     10.3
-#>  6     2019      49374   7.5     5611     12.8
-#>  7     2020      53234   8       3860      7.8
-#>  8     2021      52788   7.9     -446     -0.8
-#>  9     2022      55546   8.2     2758      5.2
-#> 10     2023      59176   8.8     3630      6.5
-#> 11     2024      59147   8.8      -29      0
-#> 12     2025      61481   9.2     2334      3.9
+#>  2     2015      37033   6.0   2639        7.7
+#>  3     2016      38414   6.1   1381        3.7
+#>  4     2017      39662   6.2   1248        3.2
+#>  5     2018      43763   6.7   4101       10.3
+#>  6     2019      49374   7.5   5611       12.8
+#>  7     2020      53234   8.0   3860        7.8
+#>  8     2021      52788   7.9   -446       -0.8
+#>  9     2022      55546   8.2   2758        5.2
+#> 10     2023      59176   8.8   3630        6.5
+#> 11     2024      59147   8.8    -29        0.0
+#> 12     2025      61481   9.2   2334        3.9
+#> 13     2026      58419   8.9  -3062       -5.0
 ```
 
 ![ELL growth](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/ell-chart-1.png)
@@ -468,7 +486,7 @@ ell_trend
 
 ### 13. Nearly 1 in 3 students are economically disadvantaged
 
-About 29% of Utah students qualify as economically disadvantaged--lower than the national average but still representing nearly 194,000 students.
+About 28% of Utah students qualify as economically disadvantaged--lower than the national average but still representing over 186,000 students.
 
 ```r
 special_pops <- enr_latest |>
@@ -478,22 +496,23 @@ special_pops <- enr_latest |>
   select(subgroup, n_students, pct) |>
   arrange(desc(n_students))
 
+stopifnot(nrow(special_pops) > 0)
 special_pops
 #> # A tibble: 3 x 3
 #>   subgroup    n_students   pct
 #>   <chr>            <dbl> <dbl>
-#> 1 econ_disadv     193572  29
-#> 2 special_ed       88462  13.2
-#> 3 lep              61481   9.2
+#> 1 econ_disadv     186361  28.4
+#> 2 special_ed       89893  13.7
+#> 3 lep              58419   8.9
 ```
 
 ![Special populations](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/special-pops-chart-1.png)
 
 ---
 
-### 14. Elementary enrollment is declining while high school grows
+### 14. Kindergarten enrollment dropped 14% since 2014
 
-Utah kindergarten enrollment dropped 11% since its 2014 peak, even as high school grades are at record levels. This points to future enrollment declines.
+Utah kindergarten enrollment has fallen from 50,363 in 2014 to 43,519 in 2026--a 14% decline--even as high school grades hit record levels. This signals future total enrollment declines.
 
 ```r
 grades <- enr_latest |>
@@ -502,33 +521,34 @@ grades <- enr_latest |>
   select(grade_level, n_students) |>
   arrange(desc(n_students))
 
+stopifnot(nrow(grades) > 0)
 grades
 #> # A tibble: 14 x 2
 #>    grade_level n_students
 #>    <chr>            <dbl>
-#>  1 11               54834
-#>  2 10               54609
-#>  3 09               53658
-#>  4 12               53425
-#>  5 08               53017
-#>  6 06               52775
-#>  7 07               51808
-#>  8 05               51677
-#>  9 04               51285
-#> 10 03               51101
-#> 11 02               48511
-#> 12 01               46313
-#> 13 K                44776
-#> 14 PK               16008
+#>  1 12               53982
+#>  2 11               53721
+#>  3 10               53580
+#>  4 09               53318
+#>  5 07               52826
+#>  6 08               51752
+#>  7 06               51547
+#>  8 05               51133
+#>  9 04               50931
+#> 10 03               48524
+#> 11 02               46245
+#> 12 01               45232
+#> 13 K                43519
+#> 14 PK               14869
 ```
 
 ![Grade distribution](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/grade-distribution-chart-1.png)
 
 ---
 
-### 15. Salt Lake City district lost 17% of students since 2019
+### 15. Salt Lake City district lost 21% of students since 2019
 
-While suburban districts boom, Salt Lake City School District has declined from over 22,000 to under 19,000 students--a loss driven by housing costs and demographic shifts in the urban core.
+While suburban districts hold steady, Salt Lake City School District has declined from over 22,000 to under 18,000 students--a loss driven by housing costs and demographic shifts in the urban core.
 
 ```r
 salt_lake <- enr |>
@@ -538,8 +558,9 @@ salt_lake <- enr |>
   mutate(change = n_students - lag(n_students),
          pct_change = round(change / lag(n_students) * 100, 1))
 
+stopifnot(nrow(salt_lake) > 0)
 salt_lake
-#> # A tibble: 7 x 5
+#> # A tibble: 8 x 5
 #>   end_year district_name      n_students change pct_change
 #>      <dbl> <chr>                   <dbl>  <dbl>      <dbl>
 #> 1     2019 Salt Lake District      22401     NA       NA
@@ -549,6 +570,7 @@ salt_lake
 #> 5     2023 Salt Lake District      19449   -384       -1.9
 #> 6     2024 Salt Lake District      18966   -483       -2.5
 #> 7     2025 Salt Lake District      18535   -431       -2.3
+#> 8     2026 Salt Lake District      17649   -886       -4.8
 ```
 
 ![Salt Lake decline](https://almartin82.github.io/utschooldata/articles/enrollment_hooks_files/figure-html/salt-lake-chart-1.png)
@@ -559,13 +581,13 @@ salt_lake
 
 Utah's school enrollment data reveals:
 
-- **Continued growth**: Unlike many states, Utah continues to add students overall
+- **Recent decline**: After years of growth, Utah enrollment peaked in 2022 and has fallen since
 - **Wasatch Front dominance**: The Salt Lake-Provo corridor holds most students
-- **Southern boom**: Washington County (St. George) is the fastest-growing region
+- **Southern boom**: Washington County (St. George) grew fastest but is now slowing
 - **Rural challenges**: Eastern Utah districts losing students to urban areas
 - **Diversifying demographics**: Hispanic and Pacific Islander populations growing
-- **Charter expansion**: Charter schools serve nearly 25% of students
-- **Grade-level shift**: Elementary declining while high school grows
+- **Charter expansion**: Charter schools serve over 26% of students
+- **Grade-level shift**: Kindergarten declining 14% while high school grew 24%
 
 These patterns reflect Utah's unique demographics--the youngest state in the nation--and rapid population growth along the Wasatch Front and in southwestern Utah.
 
