@@ -19,11 +19,11 @@ key trends and demographic patterns across available years of data.
 
 ------------------------------------------------------------------------
 
-## 1. Utah’s enrollment continues to grow
+## 1. Utah grew 7% since 2014 but is now declining
 
-Utah has one of the youngest populations in the nation and continues to
-see steady enrollment growth, unlike many states that saw declines after
-COVID.
+Utah added over 44,000 students from 2014 to its 2022 peak, but
+enrollment has fallen three of the last four years, dropping below
+660,000 in 2026.
 
 ``` r
 enr <- fetch_enr_multi(available_years, use_cache = TRUE)
@@ -34,6 +34,7 @@ state_totals <- enr |>
   mutate(change = n_students - lag(n_students),
          pct_change = round(change / lag(n_students) * 100, 2))
 
+stopifnot(nrow(state_totals) > 0)
 state_totals
 #>    end_year n_students change pct_change
 #> 1      2014     612088     NA         NA
@@ -55,10 +56,12 @@ state_totals
 ggplot(state_totals, aes(x = end_year, y = n_students)) +
   geom_line(linewidth = 1.2, color = "#CC0000") +
   geom_point(size = 3, color = "#CC0000") +
+  geom_vline(xintercept = 2020, linetype = "dashed", color = "gray50", alpha = 0.7) +
+  annotate("text", x = 2020, y = Inf, label = "COVID", vjust = 2, hjust = 0.5, size = 3, color = "gray50") +
   scale_y_continuous(labels = scales::comma) +
   labs(
     title = paste0("Utah Public School Enrollment (", min_year, "-", max_year, ")"),
-    subtitle = "Steady growth continues in the Beehive State",
+    subtitle = "Growth peaked in 2022, now declining",
     x = "School Year (ending)",
     y = "Total Enrollment"
   )
@@ -70,32 +73,35 @@ ggplot(state_totals, aes(x = end_year, y = n_students)) +
 
 ## 2. Granite and Alpine are Utah’s enrollment giants
 
-Utah’s two largest districts–Granite and Alpine–each serve well over
-60,000 students, but their trajectories differ. Salt Lake City has seen
-declines while suburban districts grow.
+Utah’s two largest districts–Alpine and Granite–anchor the Wasatch
+Front, but their trajectories differ. Salt Lake District has seen steep
+declines while suburban districts hold steady.
 
 ``` r
 large_districts <- enr |>
   filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL",
-         grepl("Granite|Alpine|Davis|Jordan|Canyons|Salt Lake City", district_name, ignore.case = TRUE)) |>
+         district_name %in% c("Granite District", "Alpine District", "Davis District",
+                              "Jordan District", "Canyons District", "Salt Lake District")) |>
   select(end_year, district_name, n_students)
+
+stopifnot(nrow(large_districts) > 0)
 
 large_districts |>
   filter(end_year == max(end_year)) |>
   arrange(desc(n_students))
-#>   end_year                   district_name n_students
-#> 1     2026                 Alpine District      84215
-#> 2     2026                  Davis District      67466
-#> 3     2026                 Jordan District      55820
-#> 4     2026                Granite District      54467
-#> 5     2026                Canyons District      31499
-#> 6     2026 North Davis Preparatory Academy        933
+#>   end_year      district_name n_students
+#> 1     2026    Alpine District      84215
+#> 2     2026     Davis District      67466
+#> 3     2026    Jordan District      55820
+#> 4     2026   Granite District      54467
+#> 5     2026   Canyons District      31499
+#> 6     2026 Salt Lake District      17649
 ```
 
 ``` r
 enr |>
   filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL",
-         grepl("Granite|Alpine|Davis|Jordan", district_name, ignore.case = TRUE)) |>
+         district_name %in% c("Granite District", "Alpine District", "Davis District", "Jordan District")) |>
   ggplot(aes(x = end_year, y = n_students, color = district_name)) +
   geom_line(linewidth = 1.2) +
   geom_point(size = 2) +
@@ -117,7 +123,7 @@ enr |>
 
 While Utah remains less diverse than national averages, Hispanic
 enrollment has grown substantially over the past decade, now
-representing a significant share of students.
+representing nearly 22% of students.
 
 ``` r
 enr_latest <- fetch_enr(max_year, use_cache = TRUE)
@@ -129,6 +135,7 @@ demographics <- enr_latest |>
   select(subgroup, n_students, pct) |>
   arrange(desc(n_students))
 
+stopifnot(nrow(demographics) > 0)
 demographics
 #>           subgroup n_students  pct
 #> 1            white     451812 68.8
@@ -175,6 +182,7 @@ pi_districts <- enr_latest |>
   arrange(desc(pct)) |>
   head(10)
 
+stopifnot(nrow(pi_districts) > 0)
 pi_districts
 #>                  district_name n_students   pct
 #> 1  Mana Academy Charter School        193 64.12
@@ -208,11 +216,11 @@ pi_districts |>
 
 ------------------------------------------------------------------------
 
-## 5. Utah County is the growth engine
+## 5. Nebo District is the Utah County growth leader
 
-Provo, Alpine, and Nebo districts in Utah County are seeing consistent
-growth as young families settle along the I-15 corridor south of Salt
-Lake.
+Provo, Alpine, and Nebo districts in Utah County show diverging paths
+since 2019. Nebo grew 26% while Provo lost nearly 20% of students as
+young families settle further south along the I-15 corridor.
 
 ``` r
 utah_county <- enr |>
@@ -241,7 +249,7 @@ utah_county
 ``` r
 enr |>
   filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL",
-         grepl("Alpine|Provo|Nebo|Washington", district_name, ignore.case = TRUE)) |>
+         district_name %in% c("Alpine District", "Provo District", "Nebo District", "Washington District")) |>
   ggplot(aes(x = end_year, y = n_students, color = district_name)) +
   geom_line(linewidth = 1.2) +
   geom_point(size = 2) +
@@ -316,34 +324,28 @@ enr |>
 ## 7. Washington County is Utah’s fastest-growing region
 
 The St. George area (Washington County School District) has exploded
-with growth as retirees and remote workers flock to southern Utah.
+with growth as retirees and remote workers flock to southern Utah,
+though growth has slowed since 2023.
 
 ``` r
 washington <- enr |>
   filter(is_district, subgroup == "total_enrollment", grade_level == "TOTAL",
-         grepl("Washington", district_name, ignore.case = TRUE)) |>
+         district_name == "Washington District") |>
   select(end_year, district_name, n_students) |>
   mutate(change = n_students - lag(n_students),
          pct_change = round(change / lag(n_students) * 100, 1))
 
+stopifnot(nrow(washington) > 0)
 washington
-#>    end_year             district_name n_students change pct_change
-#> 1      2019       Washington District      31074     NA         NA
-#> 2      2019 George Washington Academy       1021 -30053      -96.7
-#> 3      2020       Washington District      33884  32863     3218.7
-#> 4      2020 George Washington Academy        998 -32886      -97.1
-#> 5      2021       Washington District      35346  34348     3441.7
-#> 6      2021 George Washington Academy       1011 -34335      -97.1
-#> 7      2022       Washington District      36453  35442     3505.6
-#> 8      2022 George Washington Academy       1017 -35436      -97.2
-#> 9      2023       Washington District      36623  35606     3501.1
-#> 10     2023 George Washington Academy       1003 -35620      -97.3
-#> 11     2024       Washington District      36753  35750     3564.3
-#> 12     2024 George Washington Academy        996 -35757      -97.3
-#> 13     2025       Washington District      36006  35010     3515.1
-#> 14     2025 George Washington Academy       1014 -34992      -97.2
-#> 15     2026       Washington District      34396  33382     3292.1
-#> 16     2026 George Washington Academy       1030 -33366      -97.0
+#>   end_year       district_name n_students change pct_change
+#> 1     2019 Washington District      31074     NA         NA
+#> 2     2020 Washington District      33884   2810        9.0
+#> 3     2021 Washington District      35346   1462        4.3
+#> 4     2022 Washington District      36453   1107        3.1
+#> 5     2023 Washington District      36623    170        0.5
+#> 6     2024 Washington District      36753    130        0.4
+#> 7     2025 Washington District      36006   -747       -2.0
+#> 8     2026 Washington District      34396  -1610       -4.5
 ```
 
 ``` r
@@ -365,11 +367,11 @@ washington |>
 
 ------------------------------------------------------------------------
 
-## 8. Charter schools serve a growing share of Utah students
+## 8. Charter schools serve over a quarter of Utah students
 
-Utah has a robust charter school sector, with dozens of charter schools
-across the state serving students who seek alternatives to traditional
-district schools.
+Utah has a robust charter school sector, with over 26% of public school
+students attending charter schools–one of the highest rates in the
+nation.
 
 ``` r
 state_total <- enr_latest |>
@@ -387,6 +389,7 @@ charter_summary <- tibble(
   pct = c(100, round(charter_total / state_total * 100, 1))
 )
 
+stopifnot(nrow(charter_summary) > 0)
 charter_summary
 #> # A tibble: 2 × 3
 #>   sector             enrollment   pct
@@ -409,7 +412,7 @@ tibble(
   scale_fill_manual(values = c("Traditional Districts" = "#1976D2", "Charter Schools" = "#43A047")) +
   labs(
     title = paste0("Utah Public School Enrollment by Sector (", max_year, ")"),
-    subtitle = "Charter schools serve a growing share of students",
+    subtitle = "Charter schools serve over a quarter of students",
     fill = NULL
   ) +
   theme_void() +
@@ -420,10 +423,11 @@ tibble(
 
 ------------------------------------------------------------------------
 
-## 9. Kindergarten enrollment dipped during COVID but recovered
+## 9. Kindergarten enrollment dipped during COVID and keeps falling
 
-Unlike many states, Utah saw kindergarten enrollment bounce back
-relatively quickly after COVID disruptions.
+Unlike many states that saw a COVID bounce-back, Utah kindergarten
+enrollment has continued to decline, dropping from 50,363 in 2014 to
+43,519 in 2026.
 
 ``` r
 covid_grades <- enr |>
@@ -432,6 +436,7 @@ covid_grades <- enr |>
   select(end_year, grade_level, n_students) |>
   pivot_wider(names_from = grade_level, values_from = n_students)
 
+stopifnot(nrow(covid_grades) > 0)
 covid_grades
 #> # A tibble: 13 × 5
 #>    end_year     K  `01`  `05`  `09`
@@ -460,12 +465,12 @@ enr |>
   ggplot(aes(x = end_year, y = n_students, color = grade_level)) +
   geom_line(linewidth = 1.2) +
   geom_point(size = 2) +
-  geom_vline(xintercept = 2021, linetype = "dashed", alpha = 0.5) +
-  annotate("text", x = 2021, y = max(covid_grades$K) * 1.05, label = "COVID", hjust = -0.1, size = 3) +
+  geom_vline(xintercept = 2020, linetype = "dashed", color = "gray50", alpha = 0.7) +
+  annotate("text", x = 2020, y = Inf, label = "COVID", vjust = 2, hjust = 0.5, size = 3, color = "gray50") +
   scale_y_continuous(labels = scales::comma) +
   labs(
     title = "Utah Grade-Level Enrollment Over Time",
-    subtitle = "Kindergarten recovered quickly after the 2020-21 dip",
+    subtitle = "Kindergarten keeps declining while 9th grade peaked in 2023",
     x = "School Year",
     y = "Enrollment",
     color = "Grade"
@@ -476,10 +481,11 @@ enr |>
 
 ------------------------------------------------------------------------
 
-## 10. High school enrollment is surging
+## 10. High school enrollment surged 24% since 2014
 
-As larger elementary cohorts from the 2010s move through the system,
-Utah high schools are seeing significant enrollment growth.
+As larger elementary cohorts from the 2010s moved through the system,
+Utah high schools saw significant enrollment growth–though 2026 marks
+the first decline.
 
 ``` r
 hs_trend <- enr |>
@@ -490,6 +496,7 @@ hs_trend <- enr |>
   mutate(change = hs_total - lag(hs_total),
          pct_change = round(change / lag(hs_total) * 100, 1))
 
+stopifnot(nrow(hs_trend) > 0)
 hs_trend
 #> # A tibble: 13 × 4
 #>    end_year hs_total change pct_change
@@ -515,10 +522,12 @@ hs_trend |>
   geom_area(fill = "#7B1FA2", alpha = 0.3) +
   geom_line(color = "#7B1FA2", linewidth = 1.2) +
   geom_point(color = "#7B1FA2", size = 3) +
+  geom_vline(xintercept = 2020, linetype = "dashed", color = "gray50", alpha = 0.7) +
+  annotate("text", x = 2020, y = Inf, label = "COVID", vjust = 2, hjust = 0.5, size = 3, color = "gray50") +
   scale_y_continuous(labels = scales::comma) +
   labs(
     title = "Utah High School Enrollment (Grades 9-12)",
-    subtitle = "Steady growth as larger cohorts reach high school",
+    subtitle = "Growth peaked in 2025, first decline in 2026",
     x = "School Year",
     y = "Total HS Enrollment"
   )
@@ -540,6 +549,7 @@ hispanic <- enr |>
   mutate(change = n_students - lag(n_students),
          pct_change = round(change / lag(n_students) * 100, 1))
 
+stopifnot(nrow(hispanic) > 0)
 hispanic
 #>    end_year n_students change pct_change
 #> 1      2014      97388     NA         NA
@@ -563,6 +573,8 @@ hispanic |>
   geom_area(fill = "#FF6F00", alpha = 0.3) +
   geom_line(color = "#FF6F00", linewidth = 1.2) +
   geom_point(color = "#FF6F00", size = 3) +
+  geom_vline(xintercept = 2020, linetype = "dashed", color = "gray50", alpha = 0.7) +
+  annotate("text", x = 2020, y = Inf, label = "COVID", vjust = 2, hjust = 0.5, size = 3, color = "gray50") +
   scale_y_continuous(labels = scales::comma) +
   labs(
     title = "Hispanic Student Enrollment in Utah",
@@ -577,10 +589,11 @@ hispanic |>
 
 ------------------------------------------------------------------------
 
-## 12. English learner population nearly doubled
+## 12. English learner population grew 70% since 2014
 
 The number of English learners (ELL/LEP) in Utah schools has grown from
-34,000 to over 61,000 since 2014–an 79% increase.
+34,000 to over 58,000 since 2014–a 70% increase that outpaces overall
+enrollment growth by nearly 10x.
 
 ``` r
 ell_trend <- enr |>
@@ -590,6 +603,7 @@ ell_trend <- enr |>
          change = n_students - lag(n_students),
          pct_change = round(change / lag(n_students) * 100, 1))
 
+stopifnot(nrow(ell_trend) > 0)
 ell_trend
 #>    end_year n_students pct change pct_change
 #> 1      2014      34394 5.6     NA         NA
@@ -613,10 +627,12 @@ ell_trend |>
   geom_area(fill = "#00897B", alpha = 0.3) +
   geom_line(color = "#00897B", linewidth = 1.2) +
   geom_point(color = "#00897B", size = 3) +
+  geom_vline(xintercept = 2020, linetype = "dashed", color = "gray50", alpha = 0.7) +
+  annotate("text", x = 2020, y = Inf, label = "COVID", vjust = 2, hjust = 0.5, size = 3, color = "gray50") +
   scale_y_continuous(labels = scales::comma) +
   labs(
     title = "English Learner Students in Utah",
-    subtitle = "ELL population nearly doubled since 2014",
+    subtitle = "ELL population grew 70% since 2014",
     x = "School Year",
     y = "ELL Students"
   )
@@ -628,9 +644,8 @@ ell_trend |>
 
 ## 13. Nearly 1 in 3 students are economically disadvantaged
 
-About 29% of Utah students qualify as economically disadvantaged–lower
-than the national average but still representing nearly 194,000
-students.
+About 28% of Utah students qualify as economically disadvantaged–lower
+than the national average but still representing over 186,000 students.
 
 ``` r
 special_pops <- enr_latest |>
@@ -640,6 +655,7 @@ special_pops <- enr_latest |>
   select(subgroup, n_students, pct) |>
   arrange(desc(n_students))
 
+stopifnot(nrow(special_pops) > 0)
 special_pops
 #>      subgroup n_students  pct
 #> 1 econ_disadv     186361 28.4
@@ -671,11 +687,11 @@ special_pops |>
 
 ------------------------------------------------------------------------
 
-## 14. Elementary enrollment is declining while high school grows
+## 14. Kindergarten enrollment dropped 14% since 2014
 
-Utah kindergarten enrollment dropped 11% since its 2014 peak, even as
-high school grades are at record levels. This points to future
-enrollment declines.
+Utah kindergarten enrollment has fallen from 50,363 in 2014 to 43,519 in
+2026–a 14% decline–even as high school grades hit record levels. This
+signals future total enrollment declines.
 
 ``` r
 grades <- enr_latest |>
@@ -684,6 +700,7 @@ grades <- enr_latest |>
   select(grade_level, n_students) |>
   arrange(desc(n_students))
 
+stopifnot(nrow(grades) > 0)
 grades
 #>    grade_level n_students
 #> 1           12      53982
@@ -728,10 +745,10 @@ grades |>
 
 ------------------------------------------------------------------------
 
-## 15. Salt Lake City district lost 17% of students since 2019
+## 15. Salt Lake City district lost 21% of students since 2019
 
-While suburban districts boom, Salt Lake City School District has
-declined from over 22,000 to under 19,000 students–a loss driven by
+While suburban districts hold steady, Salt Lake City School District has
+declined from over 22,000 to under 18,000 students–a loss driven by
 housing costs and demographic shifts in the urban core.
 
 ``` r
@@ -742,6 +759,7 @@ salt_lake <- enr |>
   mutate(change = n_students - lag(n_students),
          pct_change = round(change / lag(n_students) * 100, 1))
 
+stopifnot(nrow(salt_lake) > 0)
 salt_lake
 #>   end_year      district_name n_students change pct_change
 #> 1     2019 Salt Lake District      22401     NA         NA
@@ -777,18 +795,19 @@ salt_lake |>
 
 Utah’s school enrollment data reveals:
 
-- **Continued growth**: Unlike many states, Utah continues to add
-  students
+- **Recent decline**: After years of growth, Utah enrollment peaked in
+  2022 and has fallen since
 - **Wasatch Front dominance**: The Salt Lake-Provo corridor holds most
   students
-- **Southern boom**: Washington County (St. George) is the
-  fastest-growing region
+- **Southern boom**: Washington County (St. George) grew fastest but is
+  now slowing
 - **Rural challenges**: Eastern Utah districts losing students to urban
   areas
 - **Diversifying demographics**: Hispanic and Pacific Islander
   populations growing
-- **Charter expansion**: Charter schools serve a meaningful share of
-  students
+- **Charter expansion**: Charter schools serve over 26% of students
+- **Grade-level shift**: Kindergarten declining 14% while high school
+  grew 24%
 
 These patterns reflect Utah’s unique demographics–the youngest state in
 the nation–and rapid population growth along the Wasatch Front and in
