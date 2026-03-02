@@ -2,12 +2,14 @@
 
 ## Fetching Data
 
-Functions for downloading enrollment data from USBE
+Functions for downloading data from USBE
 
 - [`fetch_enr()`](https://almartin82.github.io/utschooldata/reference/fetch_enr.md)
   : Fetch Utah enrollment data
 - [`fetch_enr_multi()`](https://almartin82.github.io/utschooldata/reference/fetch_enr_multi.md)
   : Fetch enrollment data for multiple years
+- [`fetch_directory()`](https://almartin82.github.io/utschooldata/reference/fetch_directory.md)
+  : Fetch Utah school directory data
 - [`get_available_years()`](https://almartin82.github.io/utschooldata/reference/get_available_years.md)
   : Get available years for Utah enrollment data
 
@@ -30,6 +32,8 @@ Functions for managing cached data
   : Show cache status
 - [`clear_cache()`](https://almartin82.github.io/utschooldata/reference/clear_cache.md)
   : Clear the utschooldata cache
+- [`clear_directory_cache()`](https://almartin82.github.io/utschooldata/reference/clear_directory_cache.md)
+  : Clear school directory cache
 
 ## Package
 
