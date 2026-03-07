@@ -37,7 +37,7 @@ test_that("USBE main website is accessible", {
   skip_if_offline()
 
   response <- httr::HEAD(
-    "https://www.schools.utah.gov/datastatistics/reports",
+    "https://schools.utah.gov/datastatistics/reports",
     httr::timeout(30)
   )
   expect_true(httr::status_code(response) %in% c(200, 301, 302))
@@ -64,7 +64,7 @@ test_that("Enrollment data URLs return HTTP 200 for all modern years (2019-2026)
 test_that("Historical time series URL is accessible", {
   skip_if_offline()
 
-  url <- "https://www.schools.utah.gov/superintendentannualreport/_reports/Fall%20Enrollment%20by%20Grade%20Level%20and%20Demographics.xlsx"
+  url <- "https://schools.utah.gov/superintendentannualreport/_reports/Fall%20Enrollment%20by%20Grade%20Level%20and%20Demographics.xlsx"
   response <- httr::HEAD(url, httr::timeout(30))
   expect_true(httr::status_code(response) %in% c(200, 301, 302))
 })

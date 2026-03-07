@@ -7,11 +7,11 @@
 #
 # Data Sources:
 # - Fall Enrollment by Grade Level and Demographics (2019-2026)
-#   URL pattern: https://www.schools.utah.gov/datastatistics/_datastatisticsfiles_/
+#   URL pattern: https://schools.utah.gov/datastatistics/_datastatisticsfiles_/
 #                _reports_/_enrollmentmembership_/{YEAR}FallEnrollmentGradeLevelDemographics.xlsx
 #
 # - State Total Time Series (2014-2018, state-level totals only)
-#   URL: https://www.schools.utah.gov/superintendentannualreport/_reports/
+#   URL: https://schools.utah.gov/superintendentannualreport/_reports/
 #        Fall%20Enrollment%20by%20Grade%20Level%20and%20Demographics.xlsx
 #   Contains "State Total Time Series" sheet with historical state-level data
 #
@@ -316,7 +316,7 @@ standardize_numeric_columns <- function(df) {
 #' @return Character string with full URL
 #' @keywords internal
 build_usbe_url <- function(end_year) {
-  base_url <- "https://www.schools.utah.gov/datastatistics/_datastatisticsfiles_/_reports_/_enrollmentmembership_"
+  base_url <- "https://schools.utah.gov/datastatistics/_datastatisticsfiles_/_reports_/_enrollmentmembership_"
   filename <- paste0(end_year, "FallEnrollmentGradeLevelDemographics.xlsx")
   paste0(base_url, "/", filename)
 }
@@ -335,7 +335,7 @@ build_usbe_url <- function(end_year) {
 download_usbe_time_series <- function(end_year) {
 
   # The superintendent annual report file contains the Time Series data
-  url <- "https://www.schools.utah.gov/superintendentannualreport/_reports/Fall%20Enrollment%20by%20Grade%20Level%20and%20Demographics.xlsx"
+  url <- "https://schools.utah.gov/superintendentannualreport/_reports/Fall%20Enrollment%20by%20Grade%20Level%20and%20Demographics.xlsx"
   message(paste0("  Downloading from: ", url))
 
   # Create temp file for download

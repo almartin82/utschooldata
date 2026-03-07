@@ -1175,7 +1175,7 @@ test_that("build_usbe_url for 2024 is correct", {
   url <- build_usbe_url(2024)
   expect_equal(
     url,
-    "https://www.schools.utah.gov/datastatistics/_datastatisticsfiles_/_reports_/_enrollmentmembership_/2024FallEnrollmentGradeLevelDemographics.xlsx"
+    "https://schools.utah.gov/datastatistics/_datastatisticsfiles_/_reports_/_enrollmentmembership_/2024FallEnrollmentGradeLevelDemographics.xlsx"
   )
 })
 
